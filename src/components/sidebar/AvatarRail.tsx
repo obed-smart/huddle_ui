@@ -7,8 +7,10 @@ import { Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
+import { usePresence } from "@/store/usePresenceStore";
 import { getUserById } from "@/lib/seed-data";
 import { getConversationMemberNames, getOtherParticipantIds } from "@/lib/conversation-utils";
+import type { Conversation } from "@/types";
 
 export function AvatarRail() {
   const router = useRouter();
@@ -32,37 +34,46 @@ export function AvatarRail() {
         <Plus className="size-4" />
       </button>
 
-      {rail.map((conversation) => {
-        const isActive = conversation.id === activeConversationId;
-        const memberNames = getConversationMemberNames(conversation);
-        const otherId = getOtherParticipantIds(conversation)[0];
-        const otherUser = getUserById(otherId);
-
-        return (
-          <button
-            key={conversation.id}
-            type="button"
-            onClick={() => handleSelect(conversation.id)}
-            className={cn(
-              "shrink-0 rounded-full p-0.5 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              isActive && "ring-2 ring-primary"
-            )}
-            aria-label={conversation.type === "group" ? conversation.name : otherUser?.name}
-            aria-current={isActive}
-          >
-            {conversation.type === "group" ? (
-              <GroupAvatar names={memberNames} size="md" />
-            ) : (
-              <Avatar
-                name={otherUser?.name ?? "Unknown"}
-                size="md"
-                presence={otherUser?.status}
-                pulse
-              />
-            )}
-          </button>
-        );
-      })}
+      {rail.map((conversation) => (
+        <AvatarRailItem
+          key={conversation.id}
+          conversation={conversation}
+          isActive={conversation.id === activeConversationId}
+          onClick={() => handleSelect(conversation.id)}
+        />
+      ))}
     </div>
+  );
+}
+
+interface AvatarRailItemProps {
+  conversation: Conversation;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function AvatarRailItem({ conversation, isActive, onClick }: AvatarRailItemProps) {
+  const memberNames = getConversationMemberNames(conversation);
+  const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
+  const otherUser = otherId ? getUserById(otherId) : undefined;
+  const otherStatus = usePresence(otherId);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "shrink-0 rounded-full p-0.5 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isActive && "ring-2 ring-primary"
+      )}
+      aria-label={conversation.type === "group" ? conversation.name : otherUser?.name}
+      aria-current={isActive}
+    >
+      {conversation.type === "group" ? (
+        <GroupAvatar names={memberNames} size="md" />
+      ) : (
+        <Avatar name={otherUser?.name ?? "Unknown"} size="md" presence={otherStatus} pulse />
+      )}
+    </button>
   );
 }

@@ -8,6 +8,7 @@ import { cn, formatRelativeTime } from "@/lib/utils";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { getConversationMemberNames, getOtherParticipantIds } from "@/lib/conversation-utils";
 import { useChatStore } from "@/store/useChatStore";
+import { usePresence } from "@/store/usePresenceStore";
 import type { Conversation, Message } from "@/types";
 
 interface ConversationCardProps {
@@ -21,8 +22,9 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
   const unreadCount = useChatStore((s) => s.getUnreadCount(conversation.id));
   const typingUserIds = useChatStore((s) => s.typingUsers[conversation.id]) ?? [];
 
-  const otherId = getOtherParticipantIds(conversation)[0];
-  const otherUser = conversation.type === "dm" ? getUserById(otherId) : undefined;
+  const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
+  const otherUser = otherId ? getUserById(otherId) : undefined;
+  const otherStatus = usePresence(otherId);
   const memberNames = getConversationMemberNames(conversation);
   const name = conversation.type === "group" ? conversation.name ?? "Group chat" : otherUser?.name ?? "Unknown";
   const isTyping = typingUserIds.length > 0;
@@ -41,7 +43,7 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
       {conversation.type === "group" ? (
         <GroupAvatar names={memberNames} size="md" />
       ) : (
-        <Avatar name={name} size="md" presence={otherUser?.status} pulse />
+        <Avatar name={name} size="md" presence={otherStatus} pulse />
       )}
 
       <span className="min-w-0 flex-1">

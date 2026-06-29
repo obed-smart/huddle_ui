@@ -17,9 +17,9 @@ import {
   getConversationStatusLine,
   getOtherParticipantIds,
 } from "@/lib/conversation-utils";
-import { getUserById } from "@/lib/seed-data";
 import { useCallStore } from "@/store/useCallStore";
 import { useChatStore } from "@/store/useChatStore";
+import { usePresence } from "@/store/usePresenceStore";
 import type { Conversation } from "@/types";
 
 interface ChatHeaderProps {
@@ -31,11 +31,12 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const togglePin = useChatStore((s) => s.togglePin);
   const startCall = useCallStore((s) => s.startCall);
 
+  const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
+  const otherStatus = usePresence(otherId);
+
   const name = getConversationName(conversation);
-  const statusLine = getConversationStatusLine(conversation);
+  const statusLine = getConversationStatusLine(conversation, otherStatus);
   const memberNames = getConversationMemberNames(conversation);
-  const otherUser =
-    conversation.type === "dm" ? getUserById(getOtherParticipantIds(conversation)[0]) : undefined;
 
   function handleCall(type: "audio" | "video") {
     startCall(conversation.id, conversation.participantIds, type);
@@ -51,7 +52,7 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
       {conversation.type === "group" ? (
         <GroupAvatar names={memberNames} size="sm" />
       ) : (
-        <Avatar name={name} size="sm" presence={otherUser?.status} />
+        <Avatar name={name} size="sm" presence={otherStatus} />
       )}
 
       <div className="min-w-0 flex-1">

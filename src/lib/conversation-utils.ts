@@ -1,4 +1,4 @@
-import type { Conversation } from "@/types";
+import type { Conversation, PresenceStatus } from "@/types";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 
 export function getOtherParticipantIds(conversation: Conversation) {
@@ -17,12 +17,18 @@ export function getConversationMemberNames(conversation: Conversation) {
     .filter((name): name is string => Boolean(name));
 }
 
-export function getConversationStatusLine(conversation: Conversation) {
+const STATUS_LABELS: Record<PresenceStatus, string> = {
+  online: "Online",
+  away: "Away",
+  busy: "Busy",
+  offline: "Offline",
+};
+
+export function getConversationStatusLine(conversation: Conversation, liveStatus?: PresenceStatus) {
   if (conversation.type === "dm") {
     const otherId = getOtherParticipantIds(conversation)[0];
-    const user = getUserById(otherId);
-    if (!user) return "";
-    return user.status === "online" ? "Online" : user.status === "away" ? "Away" : "Offline";
+    const status = liveStatus ?? getUserById(otherId)?.status;
+    return status ? STATUS_LABELS[status] : "";
   }
   return `${conversation.participantIds.length} members`;
 }

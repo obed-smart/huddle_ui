@@ -8,6 +8,7 @@ import { MobileNav } from "@/components/sidebar/MobileNav";
 import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
 import { UsernameModal } from "@/features/auth/UsernameModal";
 import { useAuthStore } from "@/store/useAuthStore";
+import { usePresenceSimulator } from "@/store/usePresenceSimulator";
 import { cn } from "@/lib/utils";
 
 const DETAIL_ROUTE = /^\/(chat|meet)\/[^/]+|^\/settings/;
@@ -18,6 +19,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isDetail = DETAIL_ROUTE.test(pathname);
+
+  usePresenceSimulator(hasHydrated && isAuthenticated);
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) router.replace("/login");
