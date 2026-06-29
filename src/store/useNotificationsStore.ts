@@ -6,6 +6,7 @@ interface NotificationsState {
   notifications: NotificationItem[];
   markRead: (id: string) => void;
   markAllRead: () => void;
+  addNotification: (input: Omit<NotificationItem, "id" | "createdAt" | "read">) => void;
 }
 
 export const useNotificationsStore = create<NotificationsState>()((set) => ({
@@ -19,5 +20,13 @@ export const useNotificationsStore = create<NotificationsState>()((set) => ({
   markAllRead: () =>
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
+    })),
+
+  addNotification: (input) =>
+    set((state) => ({
+      notifications: [
+        { ...input, id: `n-${Date.now()}`, createdAt: new Date().toISOString(), read: false },
+        ...state.notifications,
+      ],
     })),
 }));

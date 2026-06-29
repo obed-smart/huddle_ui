@@ -5,6 +5,7 @@ export type ModalId =
   | "search-users"
   | "username-setup"
   | "notifications"
+  | "conversation-requests"
   | null;
 
 interface UIState {

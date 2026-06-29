@@ -3,10 +3,13 @@
 import { IconButton } from "@/components/ui/icon-button";
 import { SquarePen } from "@/components/ui/icons";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { RequestsButton } from "./RequestsButton";
 import { useUIStore } from "@/store/useUIStore";
+import { usePendingIncomingRequests } from "@/store/useConversationRequestStore";
 
 export function SidebarHeader() {
   const openModal = useUIStore((s) => s.openModal);
+  const incoming = usePendingIncomingRequests();
 
   return (
     <div className="flex items-center justify-between gap-2 px-5 pt-5">
@@ -17,6 +20,7 @@ export function SidebarHeader() {
         <span className="font-heading text-lg font-semibold text-foreground">Huddle</span>
       </div>
       <div className="flex items-center gap-1">
+        <RequestsButton count={incoming.length} onClick={() => openModal("conversation-requests")} />
         <NotificationDropdown />
         <IconButton label="Start a new chat" onClick={() => openModal("search-users")}>
           <SquarePen />

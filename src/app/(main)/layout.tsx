@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
 import { ChatSidebar } from "@/components/sidebar/ChatSidebar";
+import { ConversationRequestsModal } from "@/components/sidebar/ConversationRequestsModal";
 import { MobileNav } from "@/components/sidebar/MobileNav";
 import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
 import { UsernameModal } from "@/features/auth/UsernameModal";
@@ -46,6 +47,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <MobileNav />
       <UsernameModal />
       <SearchUsersModal />
+      <ConversationRequestsModal />
       <IncomingCallModal />
     </div>
   );

@@ -7,12 +7,18 @@ import { NotificationBell } from "./NotificationBell";
 import { NotificationItem } from "./NotificationItem";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useUIStore } from "@/store/useUIStore";
+import type { NotificationItem as NotificationItemType } from "@/types";
 
 export function NotificationDropdown() {
   const { notifications, markRead, markAllRead } = useNotificationsStore();
   const { activeModal, openModal, closeModal } = useUIStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const open = activeModal === "notifications";
+
+  function handleSelect(notification: NotificationItemType) {
+    markRead(notification.id);
+    if (notification.type === "request") openModal("conversation-requests");
+  }
 
   return (
     <Popover open={open} onOpenChange={(next) => (next ? openModal("notifications") : closeModal())}>
@@ -46,7 +52,7 @@ export function NotificationDropdown() {
               <NotificationItem
                 key={notification.id}
                 notification={notification}
-                onClick={() => markRead(notification.id)}
+                onClick={() => handleSelect(notification)}
               />
             ))}
           </div>

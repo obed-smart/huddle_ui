@@ -1,12 +1,13 @@
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { NotificationItem as NotificationItemType } from "@/types";
-import { MessageSquare, Phone, AtSign, Sparkles } from "@/components/ui/icons";
+import { MessageSquare, Phone, AtSign, Sparkles, UserPlus } from "@/components/ui/icons";
 
 const TYPE_ICON = {
   message: MessageSquare,
   call: Phone,
   mention: AtSign,
   system: Sparkles,
+  request: UserPlus,
 } as const;
 
 const TYPE_COLOR = {
@@ -14,6 +15,7 @@ const TYPE_COLOR = {
   call: "bg-destructive-muted text-rose-600",
   mention: "bg-warning-muted text-amber-600",
   system: "bg-success-muted text-emerald-600",
+  request: "bg-secondary text-primary",
 } as const;
 
 interface NotificationItemProps {

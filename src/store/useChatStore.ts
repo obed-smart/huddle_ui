@@ -18,7 +18,7 @@ interface ChatState {
   markRead: (conversationId: string) => void;
   getLastMessage: (conversationId: string) => Message | undefined;
   getUnreadCount: (conversationId: string) => number;
-  startConversationWith: (userId: string) => string;
+  addConversation: (conversation: Conversation) => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -127,18 +127,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     ).length;
   },
 
-  startConversationWith: (userId) => {
-    const existing = get().conversations.find(
-      (c) => c.type === "dm" && c.participantIds.includes(userId)
-    );
-    if (existing) return existing.id;
-
-    const conversation: Conversation = {
-      id: `c-${userId}`,
-      type: "dm",
-      participantIds: [CURRENT_USER_ID, userId],
-    };
+  addConversation: (conversation) => {
     set((state) => ({ conversations: [conversation, ...state.conversations] }));
-    return conversation.id;
   },
 }));

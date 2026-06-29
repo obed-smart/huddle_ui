@@ -81,7 +81,7 @@ export interface MeetSession {
   pinnedUserId?: string;
 }
 
-export type NotificationType = "message" | "call" | "mention" | "system";
+export type NotificationType = "message" | "call" | "mention" | "system" | "request";
 
 export interface NotificationItem {
   id: string;
@@ -91,6 +91,16 @@ export interface NotificationItem {
   createdAt: string;
   read: boolean;
   avatarUrl?: string;
+}
+
+export type ConversationRequestStatus = "pending" | "accepted" | "declined";
+
+export interface ConversationRequest {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  status: ConversationRequestStatus;
+  createdAt: string;
 }
 
 export interface SharedFile {
