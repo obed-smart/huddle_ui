@@ -1,0 +1,49 @@
+"use client";
+
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
+import { ChatSidebar } from "@/components/sidebar/ChatSidebar";
+import { MobileNav } from "@/components/sidebar/MobileNav";
+import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
+import { UsernameModal } from "@/features/auth/UsernameModal";
+import { useAuthStore } from "@/store/useAuthStore";
+import { cn } from "@/lib/utils";
+
+const DETAIL_ROUTE = /^\/(chat|meet)\/[^/]+/;
+
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isDetail = DETAIL_ROUTE.test(pathname);
+
+  useEffect(() => {
+    if (hasHydrated && !isAuthenticated) router.replace("/login");
+  }, [hasHydrated, isAuthenticated, router]);
+
+  if (!hasHydrated || !isAuthenticated) return null;
+
+  return (
+    <div className="flex h-dvh flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          className={cn(
+            "w-full shrink-0 border-r border-border md:flex md:w-[360px]",
+            isDetail ? "hidden" : "flex"
+          )}
+        >
+          <ChatSidebar />
+        </div>
+        <main className={cn("flex-1 overflow-hidden", isDetail ? "flex" : "hidden md:flex")}>
+          {children}
+        </main>
+      </div>
+      <MobileNav />
+      <UsernameModal />
+      <SearchUsersModal />
+      <IncomingCallModal />
+    </div>
+  );
+}
