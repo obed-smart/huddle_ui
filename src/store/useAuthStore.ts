@@ -25,6 +25,12 @@ interface AuthState {
 const SIMULATED_DELAY = 600;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function generateUsername(name: string) {
+  const base = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return `${base}${suffix}`;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -77,7 +83,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         await wait(SIMULATED_DELAY);
         const current = seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
-        set({ user: current, isAuthenticated: true, isLoading: false, needsUsername: true });
+        const googleUser: User = { ...current, username: generateUsername(current.name) };
+        set({ user: googleUser, isAuthenticated: true, isLoading: false, needsUsername: true });
       },
 
       logout: () => set({ user: null, isAuthenticated: false }),
