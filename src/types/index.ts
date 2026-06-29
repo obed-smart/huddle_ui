@@ -7,6 +7,8 @@ export interface User {
   email: string;
   avatarUrl?: string;
   status: PresenceStatus;
+  bio?: string;
+  about?: string;
 }
 
 export type ConversationType = "dm" | "group";

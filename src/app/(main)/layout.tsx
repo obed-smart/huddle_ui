@@ -10,7 +10,7 @@ import { UsernameModal } from "@/features/auth/UsernameModal";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
 
-const DETAIL_ROUTE = /^\/(chat|meet)\/[^/]+/;
+const DETAIL_ROUTE = /^\/(chat|meet)\/[^/]+|^\/settings/;
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

@@ -17,6 +17,7 @@ interface AuthState {
   logout: () => void;
   setUsername: (username: string) => void;
   setStatus: (status: PresenceStatus) => void;
+  updateProfile: (patch: Partial<Pick<User, "name" | "username" | "bio" | "about" | "avatarUrl">>) => void;
   dismissUsernamePrompt: () => void;
   clearError: () => void;
 }
@@ -90,6 +91,11 @@ export const useAuthStore = create<AuthState>()(
       setStatus: (status) =>
         set((state) => ({
           user: state.user ? { ...state.user, status } : state.user,
+        })),
+
+      updateProfile: (patch) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...patch } : state.user,
         })),
 
       dismissUsernamePrompt: () => set({ needsUsername: false }),

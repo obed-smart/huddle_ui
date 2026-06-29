@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { MessagesSquare, Video, Bell } from "@/components/ui/icons";
+import { MessagesSquare, Video, Bell, Settings } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/useUIStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
@@ -38,6 +38,13 @@ export function MobileNav() {
       icon: Bell,
       active: activeModal === "notifications",
       onClick: () => openModal("notifications"),
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Settings,
+      active: pathname.startsWith("/settings"),
+      onClick: () => router.push("/settings"),
     },
   ];
 

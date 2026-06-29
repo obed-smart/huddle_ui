@@ -14,6 +14,8 @@ export const seedUsers: User[] = [
     username: "emersondias",
     email: "emersondias@gmail.com",
     status: "online",
+    bio: "Product designer, coffee enthusiast",
+    about: "Building thoughtful tools for fast-moving teams. Based in São Paulo.",
   },
   {
     id: "u-jakob",

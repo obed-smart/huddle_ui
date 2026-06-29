@@ -77,4 +77,5 @@ export {
   ChevronUp,
   CircleUserRound,
   SquarePen,
+  Pencil,
 } from "lucide-react";
