@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Attachment, Conversation, Message } from "@/types";
+import type { Attachment, CallEvent, Conversation, Message } from "@/types";
 import {
   CURRENT_USER_ID,
   seedConversations,
@@ -19,6 +19,7 @@ interface ChatState {
   getLastMessage: (conversationId: string) => Message | undefined;
   getUnreadCount: (conversationId: string) => number;
   addConversation: (conversation: Conversation) => void;
+  addCallMessage: (conversationId: string, call: CallEvent) => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -129,5 +130,22 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
   addConversation: (conversation) => {
     set((state) => ({ conversations: [conversation, ...state.conversations] }));
+  },
+
+  addCallMessage: (conversationId, call) => {
+    const message: Message = {
+      id: `m-${Date.now()}`,
+      conversationId,
+      senderId: CURRENT_USER_ID,
+      call,
+      createdAt: new Date().toISOString(),
+      status: "sent",
+    };
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
+      },
+    }));
   },
 }));

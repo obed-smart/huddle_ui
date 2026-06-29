@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { GroupAvatar } from "@/components/ui/group-avatar";
 import { UnreadBadge } from "@/components/ui/badge";
 import { Pin } from "@/components/ui/icons";
+import { describeCallEvent } from "@/lib/call-events";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { getConversationMemberNames, getOtherParticipantIds } from "@/lib/conversation-utils";
@@ -79,6 +80,8 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
 }
 
 function buildPreview(conversation: Conversation, message: Message) {
+  if (message.call) return describeCallEvent(message.call);
+
   const isOwn = message.senderId === CURRENT_USER_ID;
   const senderLabel =
     conversation.type === "group"

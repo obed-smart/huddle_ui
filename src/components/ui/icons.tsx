@@ -9,6 +9,7 @@ export {
   VideoOff,
   Phone,
   PhoneOff,
+  PhoneMissed,
   MoreHorizontal,
   MoreVertical,
   SendHorizontal,

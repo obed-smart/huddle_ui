@@ -1,4 +1,5 @@
 import { Avatar } from "@/components/ui/avatar";
+import { CallEventRow } from "./CallEventRow";
 import { MessageBubble } from "./MessageBubble";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,8 @@ interface MessageGroupProps {
 
 export function MessageGroup({ messages, conversation }: MessageGroupProps) {
   const first = messages[0];
+  if (messages.length === 1 && first.call) return <CallEventRow message={first} />;
+
   const isOwn = first.senderId === CURRENT_USER_ID;
   const sender = getUserById(first.senderId);
   const showSenderMeta = conversation.type === "group" && !isOwn;

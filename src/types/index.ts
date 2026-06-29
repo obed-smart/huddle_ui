@@ -41,12 +41,14 @@ export interface Message {
   senderId: string;
   text?: string;
   attachments?: Attachment[];
+  call?: CallEvent;
   createdAt: string;
   status: MessageStatus;
 }
 
 export type CallType = "audio" | "video";
-export type CallStatus = "ringing" | "active" | "ended" | "declined" | "missed";
+export type CallStatus = "calling" | "connecting" | "ringing" | "active" | "ended" | "declined" | "missed";
+export type CallDirection = "outgoing" | "incoming";
 
 export interface CallParticipant {
   userId: string;
@@ -60,8 +62,18 @@ export interface CallSession {
   conversationId: string;
   type: CallType;
   status: CallStatus;
+  direction: CallDirection;
   participants: CallParticipant[];
   startedAt?: string;
+}
+
+export type CallOutcome = "completed" | "declined" | "missed";
+
+export interface CallEvent {
+  type: CallType;
+  direction: CallDirection;
+  outcome: CallOutcome;
+  durationSeconds?: number;
 }
 
 export type MeetRole = "host" | "member";

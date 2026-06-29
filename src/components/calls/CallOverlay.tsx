@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CallControls } from "./CallControls";
+import { OutgoingCallPanel } from "./OutgoingCallPanel";
 import { ParticipantTile } from "./ParticipantTile";
 import { CallTimer } from "@/components/shared/CallTimer";
 import { IconButton } from "@/components/ui/icon-button";
@@ -24,6 +25,7 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
 
   const name = conversation ? getConversationName(conversation) : "Call";
   const gridCols = getParticipantGridCols(activeCall.participants.length);
+  const isLive = activeCall.status === "active";
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
@@ -41,15 +43,19 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 md:p-8">
-        <div className={cn("grid w-full max-w-4xl gap-4", gridCols)}>
-          {activeCall.participants.map((participant) => (
-            <ParticipantTile key={participant.userId} participant={participant} className="aspect-video" />
-          ))}
+      {isLive ? (
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 md:p-8">
+          <div className={cn("grid w-full max-w-4xl gap-4", gridCols)}>
+            {activeCall.participants.map((participant) => (
+              <ParticipantTile key={participant.userId} participant={participant} className="aspect-video" />
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <OutgoingCallPanel call={activeCall} name={name} />
+      )}
 
-      <CallControls conversationId={conversationId} />
+      {isLive && <CallControls conversationId={conversationId} />}
     </div>
   );
 }
