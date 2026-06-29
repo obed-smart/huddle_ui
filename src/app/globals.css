@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Huddle Design System
+   Single source of truth for color, type, radius, shadow, and motion tokens.
+   Semantic aliases (--color-primary, --color-surface, etc.) are what
+   components should consume — raw palette values stay here only.
+   ========================================================================== */
+
+:root {
+  /* Brand palette anchors (mirrors Tailwind's indigo/slate/emerald/rose scales) */
+  --huddle-indigo-50: #eef2ff;
+  --huddle-indigo-100: #e0e7ff;
+  --huddle-indigo-200: #c7d2fe;
+  --huddle-indigo-300: #a5b4fc;
+  --huddle-indigo-400: #818cf8;
+  --huddle-indigo-500: #6366f1;
+  --huddle-indigo-600: #4f46e5;
+  --huddle-indigo-700: #4338ca;
+  --huddle-indigo-800: #3730a3;
+  --huddle-indigo-900: #312e81;
+
+  --huddle-slate-50: #f8fafc;
+  --huddle-slate-100: #f1f5f9;
+  --huddle-slate-200: #e2e8f0;
+  --huddle-slate-300: #cbd5e1;
+  --huddle-slate-400: #94a3b8;
+  --huddle-slate-500: #64748b;
+  --huddle-slate-600: #475569;
+  --huddle-slate-700: #334155;
+  --huddle-slate-800: #1e293b;
+  --huddle-slate-900: #0f172a;
+
+  --huddle-emerald-50: #ecfdf5;
+  --huddle-emerald-100: #d1fae5;
+  --huddle-emerald-500: #10b981;
+  --huddle-emerald-600: #059669;
+
+  --huddle-rose-50: #fff1f2;
+  --huddle-rose-100: #ffe4e6;
+  --huddle-rose-500: #f43f5e;
+  --huddle-rose-600: #e11d48;
+
+  --huddle-amber-50: #fffbeb;
+  --huddle-amber-100: #fef3c7;
+  --huddle-amber-500: #f59e0b;
+  --huddle-amber-600: #d97706;
+
+  --huddle-white: #ffffff;
+
+  /* Semantic aliases */
+  --background: var(--huddle-slate-50);
+  --foreground: var(--huddle-slate-900);
+
+  --surface: var(--huddle-white);
+  --surface-muted: var(--huddle-slate-100);
+  --surface-hover: var(--huddle-slate-100);
+
+  --primary: var(--huddle-indigo-500);
+  --primary-hover: var(--huddle-indigo-600);
+  --primary-foreground: var(--huddle-white);
+
+  --secondary: var(--huddle-indigo-100);
+  --secondary-foreground: var(--huddle-indigo-700);
+
+  --muted: var(--huddle-slate-100);
+  --muted-foreground: var(--huddle-slate-500);
+
+  --border: var(--huddle-slate-200);
+  --input: var(--huddle-slate-200);
+  --ring: var(--huddle-indigo-500);
+
+  --success: var(--huddle-emerald-500);
+  --success-foreground: var(--huddle-white);
+  --success-muted: var(--huddle-emerald-50);
+
+  --destructive: var(--huddle-rose-500);
+  --destructive-hover: var(--huddle-rose-600);
+  --destructive-foreground: var(--huddle-white);
+  --destructive-muted: var(--huddle-rose-50);
+
+  --warning: var(--huddle-amber-500);
+  --warning-foreground: var(--huddle-white);
+  --warning-muted: var(--huddle-amber-50);
+
+  /* Chat-specific */
+  --bubble-sent: var(--huddle-indigo-500);
+  --bubble-sent-foreground: var(--huddle-white);
+  --bubble-received: var(--huddle-slate-100);
+  --bubble-received-foreground: var(--huddle-slate-800);
+
+  /* Presence */
+  --presence-online: var(--huddle-emerald-500);
+  --presence-away: var(--huddle-amber-500);
+  --presence-offline: var(--huddle-slate-300);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-muted: var(--destructive-muted);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+
+  --color-bubble-sent: var(--bubble-sent);
+  --color-bubble-sent-foreground: var(--bubble-sent-foreground);
+  --color-bubble-received: var(--bubble-received);
+  --color-bubble-received-foreground: var(--bubble-received-foreground);
+
+  --color-presence-online: var(--presence-online);
+  --color-presence-away: var(--presence-away);
+  --color-presence-offline: var(--presence-offline);
+
+  --color-indigo-50: var(--huddle-indigo-50);
+  --color-indigo-100: var(--huddle-indigo-100);
+  --color-indigo-500: var(--huddle-indigo-500);
+  --color-indigo-600: var(--huddle-indigo-600);
+
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
+
+  /* Radius scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Elevation — soft, slate-tinted shadows for a premium feel */
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 12px 24px -4px rgb(15 23 42 / 0.1), 0 4px 8px -4px rgb(15 23 42 / 0.04);
+  --shadow-xl: 0 20px 40px -8px rgb(15 23 42 / 0.14), 0 8px 16px -8px rgb(15 23 42 / 0.06);
+  --shadow-focus: 0 0 0 3px var(--huddle-indigo-200);
+
+  /* Motion */
+  --ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in 0.18s var(--ease-out-smooth);
+  --animate-scale-in: scale-in 0.16s var(--ease-out-smooth);
+  --animate-slide-up: slide-up 0.22s var(--ease-out-smooth);
+  --animate-presence-pulse: presence-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-typing-bounce: typing-bounce 1.1s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes presence-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(99 102 241 / 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 5px rgb(99 102 241 / 0);
+    }
+  }
+  @keyframes typing-bounce {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.5;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+
+  ::selection {
+    background: var(--huddle-indigo-200);
+  }
+}
+
+/* Respect reduced-motion preferences globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Slim, unobtrusive scrollbars used across panels */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--huddle-slate-300) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--huddle-slate-300);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
