@@ -12,7 +12,7 @@ interface AuthState {
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (payload: { name: string; email: string; password: string }) => Promise<void>;
+  register: (payload: { firstName: string; lastName: string; email: string; password: string }) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
   setUsername: (username: string) => void;
@@ -64,19 +64,22 @@ export const useAuthStore = create<AuthState>()(
         set({ user: match, isAuthenticated: true, isLoading: false });
       },
 
-      register: async ({ name, email }) => {
+      register: async ({ firstName, lastName, email }) => {
         set({ isLoading: true, error: null });
         await wait(SIMULATED_DELAY);
 
+        const name = `${firstName.trim()} ${lastName.trim()}`.trim();
         const newUser: User = {
           id: `u-${Date.now()}`,
           name,
-          username: name.toLowerCase().replace(/\s+/g, ""),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: generateUsername(name),
           email,
           status: "online",
         };
 
-        set({ user: newUser, isAuthenticated: true, isLoading: false });
+        set({ user: newUser, isAuthenticated: true, isLoading: false, needsUsername: true });
       },
 
       loginWithGoogle: async () => {

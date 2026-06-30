@@ -11,14 +11,15 @@ import { useAuthStore } from "@/store/useAuthStore";
 export function RegisterForm() {
   const router = useRouter();
   const { register, loginWithGoogle, isLoading } = useAuthStore();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await register({ name, email, password });
+    await register({ firstName, lastName, email, password });
     router.push("/chat");
   }
 
@@ -30,16 +31,27 @@ export function RegisterForm() {
   return (
     <div className="space-y-5">
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <AuthFormField
-          label="Full name"
-          type="text"
-          autoComplete="name"
-          placeholder="Jordan Casey"
-          leadingIcon={<User />}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <AuthFormField
+            label="First name"
+            type="text"
+            autoComplete="given-name"
+            placeholder="Jordan"
+            leadingIcon={<User />}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+          <AuthFormField
+            label="Last name"
+            type="text"
+            autoComplete="family-name"
+            placeholder="Casey"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+        </div>
         <AuthFormField
           label="Email"
           type="email"
