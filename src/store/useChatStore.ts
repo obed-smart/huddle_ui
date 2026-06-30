@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Attachment, CallEvent, Conversation, Message } from "@/types";
+import type { Attachment, CallEvent, Conversation, MeetEvent, Message } from "@/types";
 import {
   CURRENT_USER_ID,
   seedConversations,
@@ -20,6 +20,10 @@ interface ChatState {
   getUnreadCount: (conversationId: string) => number;
   addConversation: (conversation: Conversation) => void;
   addCallMessage: (conversationId: string, call: CallEvent) => void;
+  addMeetMessage: (conversationId: string, meet: MeetEvent) => void;
+  toggleReaction: (conversationId: string, messageId: string, emoji: string, userId: string) => void;
+  addMemberToConversation: (conversationId: string, userId: string) => void;
+  getConversationByInviteCode: (code: string) => Conversation | undefined;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -147,5 +151,56 @@ export const useChatStore = create<ChatState>()((set, get) => ({
         [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
       },
     }));
+  },
+
+  addMeetMessage: (conversationId, meet) => {
+    const message: Message = {
+      id: `m-${Date.now()}`,
+      conversationId,
+      senderId: CURRENT_USER_ID,
+      meet,
+      createdAt: new Date().toISOString(),
+      status: "sent",
+    };
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
+      },
+    }));
+  },
+
+  toggleReaction: (conversationId, messageId, emoji, userId) => {
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: (state.messagesByConversation[conversationId] ?? []).map((m) => {
+          if (m.id !== messageId) return m;
+          const reactions = { ...(m.reactions ?? {}) };
+          const reactors = reactions[emoji] ?? [];
+          reactions[emoji] = reactors.includes(userId)
+            ? reactors.filter((id) => id !== userId)
+            : [...reactors, userId];
+          if (reactions[emoji].length === 0) delete reactions[emoji];
+          return { ...m, reactions };
+        }),
+      },
+    }));
+  },
+
+  addMemberToConversation: (conversationId, userId) => {
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId && !c.participantIds.includes(userId)
+          ? { ...c, participantIds: [...c.participantIds, userId] }
+          : c
+      ),
+    }));
+  },
+
+  getConversationByInviteCode: (code) => {
+    return get().conversations.find(
+      (c) => c.inviteCode?.toLowerCase() === code.toLowerCase()
+    );
   },
 }));

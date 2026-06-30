@@ -6,6 +6,8 @@ export type ModalId =
   | "username-setup"
   | "notifications"
   | "conversation-requests"
+  | "create-group"
+  | "join-group"
   | null;
 
 interface UIState {

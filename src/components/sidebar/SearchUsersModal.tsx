@@ -19,9 +19,9 @@ export function SearchUsersModal() {
   const sendConversationRequest = useConversationRequestStore((s) => s.sendConversationRequest);
   const open = activeModal === "search-users";
 
-  const q = query.trim().toLowerCase();
+  const q = query.trim().toLowerCase().replace(/^@/, "");
   const results = seedUsers.filter(
-    (u) => u.id !== CURRENT_USER_ID && (!q || u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
+    (u) => u.id !== CURRENT_USER_ID && (!q || u.username.toLowerCase() === q)
   );
 
   function handleOpenChange(next: boolean) {
@@ -44,7 +44,7 @@ export function SearchUsersModal() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Find people"
-      description="Search by name or @username to send a conversation request."
+      description="Search by exact @username to send a conversation request."
     >
       <div className="space-y-3">
         <Input

@@ -78,6 +78,8 @@ export const seedConversations: Conversation[] = [
     name: "Team Meet",
     participantIds: ["u-emerson", "u-jakob", "u-gustavo", "u-jaydon", "u-hanna", "u-skylar"],
     pinned: true,
+    isPrivate: false,
+    inviteCode: "TEAMM3T",
   },
   {
     id: "c-katie",
@@ -94,6 +96,8 @@ export const seedConversations: Conversation[] = [
     type: "group",
     name: "Design Crit",
     participantIds: ["u-emerson", "u-hanna", "u-sophia", "u-skylar"],
+    isPrivate: true,
+    inviteCode: "DSGNCR1",
   },
   {
     id: "c-sophia",

@@ -19,7 +19,7 @@ export function groupMessagesByDay(messages: Message[]): DaySegment[] {
       segments.push(segment);
     }
 
-    if (message.call) {
+    if (message.call || message.meet) {
       segment.groups.push([message]);
       continue;
     }
@@ -30,7 +30,12 @@ export function groupMessagesByDay(messages: Message[]): DaySegment[] {
       ? new Date(message.createdAt).getTime() - new Date(lastMessage.createdAt).getTime()
       : Infinity;
 
-    if (!lastMessage?.call && lastMessage?.senderId === message.senderId && elapsed < GROUP_GAP_MS) {
+    if (
+      !lastMessage?.call &&
+      !lastMessage?.meet &&
+      lastMessage?.senderId === message.senderId &&
+      elapsed < GROUP_GAP_MS
+    ) {
       lastGroup.push(message);
     } else {
       segment.groups.push([message]);

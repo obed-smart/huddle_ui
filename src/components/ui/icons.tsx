@@ -79,4 +79,6 @@ export {
   CircleUserRound,
   SquarePen,
   Pencil,
+  Globe,
+  Link2,
 } from "lucide-react";

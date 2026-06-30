@@ -20,6 +20,8 @@ export interface Conversation {
   participantIds: string[];
   avatarUrl?: string;
   pinned?: boolean;
+  isPrivate?: boolean;
+  inviteCode?: string;
 }
 
 export type AttachmentType = "image" | "file" | "voice";
@@ -35,6 +37,12 @@ export interface Attachment {
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "read";
 
+export interface MeetEvent {
+  meetId: string;
+  title: string;
+  startedBy: string;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -42,6 +50,8 @@ export interface Message {
   text?: string;
   attachments?: Attachment[];
   call?: CallEvent;
+  meet?: MeetEvent;
+  reactions?: Record<string, string[]>;
   createdAt: string;
   status: MessageStatus;
 }
@@ -112,6 +122,16 @@ export interface ConversationRequest {
   fromUserId: string;
   toUserId: string;
   status: ConversationRequestStatus;
+  createdAt: string;
+}
+
+export type GroupJoinRequestStatus = "pending" | "accepted" | "declined";
+
+export interface GroupJoinRequest {
+  id: string;
+  conversationId: string;
+  fromUserId: string;
+  status: GroupJoinRequestStatus;
   createdAt: string;
 }
 

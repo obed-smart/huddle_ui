@@ -1,7 +1,13 @@
 "use client";
 
 import { IconButton } from "@/components/ui/icon-button";
-import { SquarePen } from "@/components/ui/icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link2, SquarePen, UserPlus, Users } from "@/components/ui/icons";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { RequestsButton } from "./RequestsButton";
 import { useUIStore } from "@/store/useUIStore";
@@ -22,9 +28,27 @@ export function SidebarHeader() {
       <div className="flex items-center gap-1">
         <RequestsButton count={incoming.length} onClick={() => openModal("conversation-requests")} />
         <NotificationDropdown />
-        <IconButton label="Start a new chat" onClick={() => openModal("search-users")}>
-          <SquarePen />
-        </IconButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <IconButton label="New">
+              <SquarePen />
+            </IconButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => openModal("search-users")}>
+              <UserPlus />
+              New chat
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => openModal("create-group")}>
+              <Users />
+              New group
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => openModal("join-group")}>
+              <Link2 />
+              Join group
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
