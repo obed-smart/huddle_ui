@@ -3,6 +3,8 @@ export type PresenceStatus = "online" | "away" | "busy" | "offline";
 export interface User {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   username: string;
   email: string;
   avatarUrl?: string;
