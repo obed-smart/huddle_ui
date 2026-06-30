@@ -12,7 +12,13 @@ interface AuthState {
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (payload: { firstName: string; lastName: string; email: string; password: string }) => Promise<void>;
+  register: (payload: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
   setUsername: (username: string) => void;
@@ -64,22 +70,28 @@ export const useAuthStore = create<AuthState>()(
         set({ user: match, isAuthenticated: true, isLoading: false });
       },
 
-      register: async ({ firstName, lastName, email }) => {
+      register: async ({ firstName, lastName, username, email }) => {
         set({ isLoading: true, error: null });
         await wait(SIMULATED_DELAY);
 
-        const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+        const trimmedUsername = username.trim().replace(/^@/, "");
+        const taken = seedUsers.some((u) => u.username.toLowerCase() === trimmedUsername.toLowerCase());
+        if (taken) {
+          set({ isLoading: false, error: "That username is already taken." });
+          return;
+        }
+
         const newUser: User = {
           id: `u-${Date.now()}`,
-          name,
+          name: `${firstName.trim()} ${lastName.trim()}`.trim(),
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          username: generateUsername(name),
+          username: trimmedUsername,
           email,
           status: "online",
         };
 
-        set({ user: newUser, isAuthenticated: true, isLoading: false, needsUsername: true });
+        set({ user: newUser, isAuthenticated: true, isLoading: false });
       },
 
       loginWithGoogle: async () => {

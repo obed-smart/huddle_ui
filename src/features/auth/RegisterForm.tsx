@@ -5,22 +5,23 @@ import { useRouter } from "next/navigation";
 import { AuthFormField } from "./AuthFormField";
 import { GoogleButton } from "./GoogleButton";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Lock, Eye, EyeOff } from "@/components/ui/icons";
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from "@/components/ui/icons";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export function RegisterForm() {
   const router = useRouter();
-  const { register, loginWithGoogle, isLoading } = useAuthStore();
+  const { register, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await register({ firstName, lastName, email, password });
-    router.push("/chat");
+    await register({ firstName, lastName, username, email, password });
+    if (useAuthStore.getState().isAuthenticated) router.push("/chat");
   }
 
   async function handleGoogle() {
@@ -30,6 +31,13 @@ export function RegisterForm() {
 
   return (
     <div className="space-y-5">
+      {error && (
+        <div className="flex items-start gap-2 rounded-(--radius-md) bg-destructive-muted px-3.5 py-3 text-sm text-rose-700">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
           <AuthFormField
@@ -52,6 +60,20 @@ export function RegisterForm() {
             required
           />
         </div>
+        <AuthFormField
+          label="Username"
+          type="text"
+          autoComplete="username"
+          placeholder="jordancasey"
+          leadingIcon={<span className="font-medium">@</span>}
+          minLength={3}
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            clearError();
+          }}
+          required
+        />
         <AuthFormField
           label="Email"
           type="email"
