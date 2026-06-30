@@ -19,7 +19,7 @@ interface AuthState {
     email: string;
     password: string;
   }) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (isSignup?: boolean) => Promise<void>;
   logout: () => void;
   setUsername: (username: string) => void;
   setStatus: (status: PresenceStatus) => void;
@@ -94,12 +94,18 @@ export const useAuthStore = create<AuthState>()(
         set({ user: newUser, isAuthenticated: true, isLoading: false });
       },
 
-      loginWithGoogle: async () => {
+      loginWithGoogle: async (isSignup = false) => {
         set({ isLoading: true, error: null });
         await wait(SIMULATED_DELAY);
         const current = seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
-        const googleUser: User = { ...current, username: generateUsername(current.name) };
-        set({ user: googleUser, isAuthenticated: true, isLoading: false, needsUsername: true });
+
+        if (isSignup) {
+          const googleUser: User = { ...current, username: generateUsername(current.name) };
+          set({ user: googleUser, isAuthenticated: true, isLoading: false, needsUsername: true });
+          return;
+        }
+
+        set({ user: current, isAuthenticated: true, isLoading: false });
       },
 
       logout: () => set({ user: null, isAuthenticated: false }),

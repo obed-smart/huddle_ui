@@ -25,7 +25,7 @@ export function RegisterForm() {
   }
 
   async function handleGoogle() {
-    await loginWithGoogle();
+    await loginWithGoogle(true);
     router.push("/chat");
   }
 
