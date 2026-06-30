@@ -14,7 +14,7 @@ export function MeetGrid({ participants, pinnedUserId }: MeetGridProps) {
   if (pinned) {
     return (
       <div className="flex h-full flex-col gap-3 p-4 md:p-6">
-        <ParticipantTile participant={pinned} className="min-h-0 flex-1" />
+        <ParticipantTile participant={pinned} className="min-h-0 flex-1 ring-2 ring-primary" />
         <div className="scrollbar-thin flex shrink-0 gap-3 overflow-x-auto">
           {others.map((participant) => (
             <ParticipantTile

@@ -16,7 +16,7 @@ export function ScreenShareView({ meet }: ScreenShareViewProps) {
 
   return (
     <div className="flex h-full flex-col gap-3 p-4 md:p-6">
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-(--radius-lg) border border-dashed border-white/15 bg-slate-800/50 text-slate-400">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-(--radius-lg) border border-dashed border-border bg-surface-muted text-muted-foreground">
         <ScreenShare className="size-10" />
         <p className="text-sm">
           {isSelf ? "You are sharing your screen" : `${presenterName} is sharing their screen`}

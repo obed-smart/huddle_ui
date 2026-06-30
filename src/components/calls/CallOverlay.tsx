@@ -28,18 +28,14 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
   const isLive = activeCall.status === "active";
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex shrink-0 items-center gap-3 px-4 py-3 md:px-6">
-        <IconButton
-          label="Minimize"
-          variant="ghostOnDark"
-          onClick={() => router.push(`/chat/${conversationId}`)}
-        >
+        <IconButton label="Minimize" onClick={() => router.push(`/chat/${conversationId}`)}>
           <ArrowLeft />
         </IconButton>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white">{name}</p>
-          <CallTimer startedAt={activeCall.startedAt} className="text-xs text-slate-400" />
+          <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+          <CallTimer startedAt={activeCall.startedAt} className="text-xs text-muted-foreground" />
         </div>
       </header>
 

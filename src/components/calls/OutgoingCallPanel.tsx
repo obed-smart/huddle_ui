@@ -33,8 +33,8 @@ export function OutgoingCallPanel({ call, name }: OutgoingCallPanelProps) {
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
       <Avatar name={name} size="xl" presence={isDeclined ? undefined : "online"} pulse={!isDeclined} />
       <div>
-        <p className="font-heading text-lg font-semibold text-white">{name}</p>
-        <p className="text-sm text-slate-400">{STATUS_LABEL[call.status] ?? "Calling…"}</p>
+        <p className="font-heading text-lg font-semibold text-foreground">{name}</p>
+        <p className="text-sm text-muted-foreground">{STATUS_LABEL[call.status] ?? "Calling…"}</p>
       </div>
       {!isDeclined && (
         <IconButton label="Cancel call" variant="destructive" size="lg" onClick={handleCancel}>

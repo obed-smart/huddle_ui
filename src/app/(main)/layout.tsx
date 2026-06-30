@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
 import { ChatSidebar } from "@/components/sidebar/ChatSidebar";
 import { ConversationRequestsModal } from "@/components/sidebar/ConversationRequestsModal";
+import { CreateGroupModal } from "@/components/sidebar/CreateGroupModal";
+import { JoinGroupModal } from "@/components/sidebar/JoinGroupModal";
 import { MobileNav } from "@/components/sidebar/MobileNav";
 import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
 import { UsernameModal } from "@/features/auth/UsernameModal";
@@ -12,14 +14,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { usePresenceSimulator } from "@/store/usePresenceSimulator";
 import { cn } from "@/lib/utils";
 
-const DETAIL_ROUTE = /^\/(chat|meet)\/[^/]+|^\/settings/;
+const SIDEBAR_ONLY_ROUTE = /^\/chat\/?$/;
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
-  const isDetail = DETAIL_ROUTE.test(pathname);
+  const isDetail = !SIDEBAR_ONLY_ROUTE.test(pathname);
 
   usePresenceSimulator(hasHydrated && isAuthenticated);
 
@@ -48,6 +50,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <UsernameModal />
       <SearchUsersModal />
       <ConversationRequestsModal />
+      <CreateGroupModal />
+      <JoinGroupModal />
       <IncomingCallModal />
     </div>
   );

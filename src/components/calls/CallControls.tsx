@@ -24,12 +24,12 @@ export function CallControls({ conversationId }: CallControlsProps) {
 
   return (
     <div className="flex shrink-0 items-center justify-center gap-3 py-6">
-      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="ghostOnDark" size="lg" onClick={toggleMute}>
+      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
         {isMuted ? <MicOff /> : <Mic />}
       </IconButton>
       <IconButton
         label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-        variant="ghostOnDark"
+        variant="filled"
         size="lg"
         onClick={toggleCamera}
       >

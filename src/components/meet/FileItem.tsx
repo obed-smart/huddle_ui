@@ -13,19 +13,19 @@ interface FileItemProps {
 
 export function FileItem({ file }: FileItemProps) {
   return (
-    <div className="flex items-center gap-3 rounded-(--radius-md) bg-white/5 px-3 py-2.5">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-(--radius-sm) bg-white/10 text-slate-300">
+    <div className="flex items-center gap-3 rounded-(--radius-md) bg-surface-muted px-3 py-2.5">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-(--radius-sm) bg-surface text-muted-foreground">
         <FileIcon className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-white">{file.name}</span>
-        <span className="block text-xs text-slate-400">
+        <span className="block truncate text-sm font-medium text-foreground">{file.name}</span>
+        <span className="block text-xs text-muted-foreground">
           {formatFileSize(file.size)}
           {file.status === "transferring" && ` · ${file.progress}%`}
           {file.status === "declined" && " · Declined"}
         </span>
         {file.status === "transferring" && (
-          <span className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <span className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-border">
             <span
               className="block h-full rounded-full bg-primary transition-all"
               style={{ width: `${file.progress}%` }}
@@ -33,11 +33,11 @@ export function FileItem({ file }: FileItemProps) {
           </span>
         )}
       </span>
-      {file.status === "transferring" && <Loader2 className="size-4 shrink-0 animate-spin text-slate-400" />}
-      {file.status === "done" && <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />}
-      {file.status === "declined" && <X className="size-4 shrink-0 text-rose-400" />}
+      {file.status === "transferring" && <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />}
+      {file.status === "done" && <CheckCircle2 className="size-4 shrink-0 text-success" />}
+      {file.status === "declined" && <X className="size-4 shrink-0 text-destructive" />}
       {file.status === "done" && file.direction === "incoming" && (
-        <Download className="size-4 shrink-0 text-slate-400" />
+        <Download className="size-4 shrink-0 text-muted-foreground" />
       )}
     </div>
   );

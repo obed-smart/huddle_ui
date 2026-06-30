@@ -28,7 +28,7 @@ export function MeetOverlay() {
   if (!activeMeet) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <MeetHeader meet={activeMeet} />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -41,8 +41,8 @@ export function MeetOverlay() {
         </div>
 
         {isRightPanelOpen && (
-          <div className="flex w-80 shrink-0 flex-col border-l border-white/10 bg-slate-950/40">
-            <div className="flex items-center gap-1 border-b border-white/10 p-2">
+          <div className="flex w-80 shrink-0 flex-col border-l border-border bg-surface">
+            <div className="flex items-center gap-1 border-b border-border p-2">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -51,14 +51,16 @@ export function MeetOverlay() {
                   aria-current={rightPanelTab === tab.id}
                   className={cn(
                     "flex flex-1 items-center justify-center gap-1.5 rounded-(--radius-sm) px-2 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    rightPanelTab === tab.id ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"
+                    rightPanelTab === tab.id
+                      ? "bg-secondary text-secondary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <tab.icon className="size-3.5" />
                   {tab.label}
                 </button>
               ))}
-              <IconButton label="Close panel" variant="ghostOnDark" size="sm" onClick={closeRightPanel}>
+              <IconButton label="Close panel" size="sm" onClick={closeRightPanel}>
                 <X />
               </IconButton>
             </div>

@@ -36,12 +36,12 @@ export function MeetControls() {
 
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-4 py-4 md:gap-3 md:py-6">
-      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="ghostOnDark" size="lg" onClick={toggleMute}>
+      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
         {isMuted ? <MicOff /> : <Mic />}
       </IconButton>
       <IconButton
         label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-        variant="ghostOnDark"
+        variant="filled"
         size="lg"
         onClick={toggleCamera}
       >
@@ -49,18 +49,18 @@ export function MeetControls() {
       </IconButton>
       <IconButton
         label={isSharing ? "Stop sharing" : "Share screen"}
-        variant="ghostOnDark"
+        variant={isSharing ? "primary" : "filled"}
         size="lg"
         onClick={toggleScreenShare}
       >
         {isSharing ? <ScreenShareOff /> : <ScreenShare />}
       </IconButton>
-      <IconButton label="Raise hand" variant="ghostOnDark" size="lg" onClick={toggleHandRaised}>
+      <IconButton label="Raise hand" variant="filled" size="lg" onClick={toggleHandRaised}>
         <Hand />
       </IconButton>
       <IconButton
         label={isRightPanelOpen ? "Hide panel" : "Show participants"}
-        variant="ghostOnDark"
+        variant={isRightPanelOpen ? "primary" : "filled"}
         size="lg"
         onClick={() => (isRightPanelOpen ? closeRightPanel() : openRightPanel("participants"))}
       >
