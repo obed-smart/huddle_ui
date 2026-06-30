@@ -22,7 +22,7 @@ function MemberRow({ userId }: { userId: string }) {
   const user = getUserById(userId);
   const status = usePresence(userId);
   const relation = useRelation(userId);
-  const sendConversationRequest = useConversationRequestStore((s) => s.sendConversationRequest);
+  const sendPing = useConversationRequestStore((s) => s.sendPing);
   if (!user) return null;
 
   const isSelf = userId === CURRENT_USER_ID;
@@ -38,12 +38,12 @@ function MemberRow({ userId }: { userId: string }) {
         <span className="block truncate text-xs text-muted-foreground">@{user.username}</span>
       </span>
       {!isSelf && relation === "none" && (
-        <Button size="sm" variant="ghost" onClick={() => sendConversationRequest(userId)}>
-          Request
+        <Button size="sm" variant="ghost" onClick={() => sendPing(userId)}>
+          Ping
         </Button>
       )}
       {!isSelf && relation === "pending" && (
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">Pending</span>
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">Pinged</span>
       )}
     </div>
   );

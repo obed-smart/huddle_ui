@@ -1,30 +1,30 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import type { Conversation, ConversationRequest } from "@/types";
+import type { Conversation, Ping } from "@/types";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { useChatStore } from "@/store/useChatStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 
-export type SendRequestResult =
+export type SendPingResult =
   | { status: "existing"; conversationId: string }
   | { status: "pending" }
   | { status: "sent" };
 
-interface ConversationRequestState {
-  requests: ConversationRequest[];
-  sendConversationRequest: (userId: string) => SendRequestResult;
-  resolveOutgoingRequest: (requestId: string) => void;
-  acceptConversationRequest: (requestId: string) => string | undefined;
-  declineConversationRequest: (requestId: string) => void;
-  simulateIncomingRequest: (fromUserId: string) => void;
+interface PingState {
+  pings: Ping[];
+  sendPing: (userId: string) => SendPingResult;
+  resolveOutgoingPing: (pingId: string) => void;
+  acceptPing: (pingId: string) => string | undefined;
+  declinePing: (pingId: string) => void;
+  simulateIncomingPing: (fromUserId: string) => void;
 }
 
 function buildDmConversation(userId: string): Conversation {
   return { id: `c-${userId}`, type: "dm", participantIds: [CURRENT_USER_ID, userId] };
 }
 
-function findPendingBetween(requests: ConversationRequest[], userId: string) {
-  return requests.find(
+function findPendingBetween(pings: Ping[], userId: string) {
+  return pings.find(
     (r) =>
       r.status === "pending" &&
       ((r.fromUserId === CURRENT_USER_ID && r.toUserId === userId) ||
@@ -32,103 +32,104 @@ function findPendingBetween(requests: ConversationRequest[], userId: string) {
   );
 }
 
-export const useConversationRequestStore = create<ConversationRequestState>()((set, get) => ({
-  requests: [],
+export const useConversationRequestStore = create<PingState>()((set, get) => ({
+  pings: [],
 
-  sendConversationRequest: (userId) => {
+  sendPing: (userId) => {
     const existing = useChatStore
       .getState()
       .conversations.find((c) => c.type === "dm" && c.participantIds.includes(userId));
     if (existing) return { status: "existing", conversationId: existing.id };
 
-    if (findPendingBetween(get().requests, userId)) return { status: "pending" };
+    if (findPendingBetween(get().pings, userId)) return { status: "pending" };
 
-    const request: ConversationRequest = {
-      id: `req-${Date.now()}`,
+    const ping: Ping = {
+      id: `ping-${Date.now()}`,
       fromUserId: CURRENT_USER_ID,
       toUserId: userId,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
-    set((state) => ({ requests: [request, ...state.requests] }));
-    setTimeout(() => get().resolveOutgoingRequest(request.id), 3000 + Math.random() * 3000);
+    set((state) => ({ pings: [ping, ...state.pings] }));
+    setTimeout(() => get().resolveOutgoingPing(ping.id), 3000 + Math.random() * 3000);
 
     return { status: "sent" };
   },
 
-  resolveOutgoingRequest: (requestId) => {
-    const request = get().requests.find((r) => r.id === requestId);
-    if (!request || request.status !== "pending") return;
+  resolveOutgoingPing: (pingId) => {
+    const ping = get().pings.find((r) => r.id === pingId);
+    if (!ping || ping.status !== "pending") return;
 
     const accepted = Math.random() < 0.85;
     set((state) => ({
-      requests: state.requests.map((r) =>
-        r.id === requestId ? { ...r, status: accepted ? "accepted" : "declined" } : r
+      pings: state.pings.map((r) =>
+        r.id === pingId ? { ...r, status: accepted ? "accepted" : "declined" } : r
       ),
     }));
-    if (accepted) useChatStore.getState().addConversation(buildDmConversation(request.toUserId));
+    if (accepted) useChatStore.getState().addConversation(buildDmConversation(ping.toUserId));
 
-    const otherUser = getUserById(request.toUserId);
+    const otherUser = getUserById(ping.toUserId);
     useNotificationsStore.getState().addNotification({
-      type: "request",
+      type: "ping",
       title: otherUser?.name ?? "Someone",
-      body: accepted ? "Accepted your conversation request" : "Declined your conversation request",
+      body: accepted ? "Accepted your Ping" : "Declined your Ping",
     });
   },
 
-  acceptConversationRequest: (requestId) => {
-    const request = get().requests.find((r) => r.id === requestId);
-    if (!request || request.status !== "pending") return undefined;
+  acceptPing: (pingId) => {
+    const ping = get().pings.find((r) => r.id === pingId);
+    if (!ping || ping.status !== "pending") return undefined;
 
     set((state) => ({
-      requests: state.requests.map((r) => (r.id === requestId ? { ...r, status: "accepted" } : r)),
+      pings: state.pings.map((r) => (r.id === pingId ? { ...r, status: "accepted" } : r)),
     }));
-    const conversation = buildDmConversation(request.fromUserId);
+    const conversation = buildDmConversation(ping.fromUserId);
     useChatStore.getState().addConversation(conversation);
     return conversation.id;
   },
 
-  declineConversationRequest: (requestId) => {
+  declinePing: (pingId) => {
     set((state) => ({
-      requests: state.requests.map((r) => (r.id === requestId ? { ...r, status: "declined" } : r)),
+      pings: state.pings.map((r) => (r.id === pingId ? { ...r, status: "declined" } : r)),
     }));
   },
 
-  simulateIncomingRequest: (fromUserId) => {
+  simulateIncomingPing: (fromUserId) => {
     const hasConvo = useChatStore
       .getState()
       .conversations.some((c) => c.type === "dm" && c.participantIds.includes(fromUserId));
-    if (hasConvo || findPendingBetween(get().requests, fromUserId)) return;
+    if (hasConvo || findPendingBetween(get().pings, fromUserId)) return;
 
-    const request: ConversationRequest = {
-      id: `req-${Date.now()}`,
+    const ping: Ping = {
+      id: `ping-${Date.now()}`,
       fromUserId,
       toUserId: CURRENT_USER_ID,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
-    set((state) => ({ requests: [request, ...state.requests] }));
+    set((state) => ({ pings: [ping, ...state.pings] }));
 
     const fromUser = getUserById(fromUserId);
     useNotificationsStore.getState().addNotification({
-      type: "request",
+      type: "ping",
       title: fromUser?.name ?? "Someone",
-      body: "Wants to start a conversation with you",
+      body: `@${fromUser?.username ?? "someone"} pinged you`,
     });
   },
 }));
 
+// ── Backwards-compatible aliases (so callers don't all need renaming at once) ──
 export function useRelation(userId: string): "existing" | "pending" | "none" {
   const hasConvo = useChatStore((s) =>
     s.conversations.some((c) => c.type === "dm" && c.participantIds.includes(userId))
   );
-  const requests = useConversationRequestStore((s) => s.requests);
+  const pings = useConversationRequestStore((s) => s.pings);
   if (hasConvo) return "existing";
-  return findPendingBetween(requests, userId) ? "pending" : "none";
+  return findPendingBetween(pings, userId) ? "pending" : "none";
 }
 
 export function usePendingIncomingRequests() {
   return useConversationRequestStore(
-    useShallow((s) => s.requests.filter((r) => r.status === "pending" && r.toUserId === CURRENT_USER_ID))
+    useShallow((s) => s.pings.filter((r) => r.status === "pending" && r.toUserId === CURRENT_USER_ID))
   );
 }

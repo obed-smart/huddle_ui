@@ -26,7 +26,7 @@ export function SidebarHeader() {
         <span className="font-heading text-lg font-semibold text-foreground">Huddle</span>
       </div>
       <div className="flex items-center gap-1">
-        <RequestsButton count={incoming.length} onClick={() => openModal("conversation-requests")} />
+        <RequestsButton count={incoming.length} onClick={() => openModal("pings")} />
         <NotificationDropdown />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

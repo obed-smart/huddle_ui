@@ -7,7 +7,7 @@ export const TYPE_ICON = {
   call: Phone,
   mention: AtSign,
   system: Sparkles,
-  request: UserPlus,
+  ping: UserPlus,
 } as const;
 
 export const TYPE_COLOR = {
@@ -15,7 +15,7 @@ export const TYPE_COLOR = {
   call: "bg-destructive-muted text-rose-600",
   mention: "bg-warning-muted text-amber-600",
   system: "bg-success-muted text-emerald-600",
-  request: "bg-secondary text-primary",
+  ping: "bg-secondary text-primary",
 } as const;
 
 interface NotificationItemProps {

@@ -34,7 +34,7 @@ export function NotificationDropdown() {
 
   function handleSelect(notification: NotificationItemType) {
     markRead(notification.id);
-    if (notification.type === "request") openModal("conversation-requests");
+    if (notification.type === "ping") openModal("pings");
   }
 
   return (

@@ -14,24 +14,24 @@ import {
   usePendingIncomingRequests,
 } from "@/store/useConversationRequestStore";
 
-const DEMO_REQUEST_DELAY_MS = 15_000;
-const DEMO_REQUEST_SESSION_KEY = "huddle:demo-incoming-request-shown";
+const DEMO_PING_DELAY_MS = 15_000;
+const DEMO_PING_SESSION_KEY = "huddle:demo-incoming-ping-shown";
 
 export function ConversationRequestsModal() {
   const router = useRouter();
   const activeModal = useUIStore((s) => s.activeModal);
   const closeModal = useUIStore((s) => s.closeModal);
-  const open = activeModal === "conversation-requests";
+  const open = activeModal === "pings";
 
   const incoming = usePendingIncomingRequests();
-  const acceptConversationRequest = useConversationRequestStore((s) => s.acceptConversationRequest);
-  const declineConversationRequest = useConversationRequestStore((s) => s.declineConversationRequest);
-  const simulateIncomingRequest = useConversationRequestStore((s) => s.simulateIncomingRequest);
+  const acceptPing = useConversationRequestStore((s) => s.acceptPing);
+  const declinePing = useConversationRequestStore((s) => s.declinePing);
+  const simulateIncomingPing = useConversationRequestStore((s) => s.simulateIncomingPing);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (sessionStorage.getItem(DEMO_REQUEST_SESSION_KEY)) return;
-      sessionStorage.setItem(DEMO_REQUEST_SESSION_KEY, "1");
+      if (sessionStorage.getItem(DEMO_PING_SESSION_KEY)) return;
+      sessionStorage.setItem(DEMO_PING_SESSION_KEY, "1");
 
       const conversations = useChatStore.getState().conversations;
       const candidates = seedUsers.filter(
@@ -41,14 +41,14 @@ export function ConversationRequestsModal() {
       );
       if (candidates.length === 0) return;
       const sender = candidates[Math.floor(Math.random() * candidates.length)];
-      simulateIncomingRequest(sender.id);
-    }, DEMO_REQUEST_DELAY_MS);
+      simulateIncomingPing(sender.id);
+    }, DEMO_PING_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [simulateIncomingRequest]);
+  }, [simulateIncomingPing]);
 
-  function handleAccept(requestId: string) {
-    const conversationId = acceptConversationRequest(requestId);
+  function handleAccept(pingId: string) {
+    const conversationId = acceptPing(pingId);
     if (conversationId) {
       closeModal();
       router.push(`/chat/${conversationId}`);
@@ -59,24 +59,24 @@ export function ConversationRequestsModal() {
     <Modal
       open={open}
       onOpenChange={(next) => !next && closeModal()}
-      title="Conversation requests"
-      description="Accept a request to start chatting, or decline to dismiss it."
+      title="Pings"
+      description="Accept a Ping to start chatting, or decline to dismiss it."
     >
       {incoming.length === 0 ? (
         <EmptyState
           icon={<UserPlus />}
-          title="No pending requests"
+          title="No pending Pings"
           description="You're all caught up."
           className="p-6"
         />
       ) : (
         <div className="scrollbar-thin max-h-80 space-y-0.5 overflow-y-auto">
-          {incoming.map((request) => (
+          {incoming.map((ping) => (
             <RequestCard
-              key={request.id}
-              request={request}
-              onAccept={() => handleAccept(request.id)}
-              onDecline={() => declineConversationRequest(request.id)}
+              key={ping.id}
+              request={ping}
+              onAccept={() => handleAccept(ping.id)}
+              onDecline={() => declinePing(ping.id)}
             />
           ))}
         </div>
