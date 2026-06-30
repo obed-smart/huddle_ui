@@ -1,0 +1,48 @@
+"use client";
+
+import { useEffect } from "react";
+import { CURRENT_USER_ID, seedUsers } from "@/lib/seed-data";
+import { useNotificationsStore } from "@/store/useNotificationsStore";
+import type { NotificationType } from "@/types";
+
+const OTHER_USERS = seedUsers.filter((u) => u.id !== CURRENT_USER_ID);
+const MIN_DELAY_MS = 25_000;
+const MAX_DELAY_MS = 55_000;
+
+const TEMPLATES: { type: NotificationType; body: (name: string) => string }[] = [
+  { type: "message", body: () => "sent you a new message" },
+  { type: "message", body: () => "Hey, are you around?" },
+  { type: "mention", body: (name) => `mentioned you: "@${name.split(" ")[0]} take a look at this"` },
+  { type: "call", body: () => "Missed call · just now" },
+];
+
+function randomNotification() {
+  const user = OTHER_USERS[Math.floor(Math.random() * OTHER_USERS.length)];
+  const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+  return {
+    type: template.type,
+    title: template.type === "call" ? `Missed call from ${user.name}` : user.name,
+    body: template.body(user.name),
+  };
+}
+
+/** Simulates push notifications arriving at random intervals, like a live backend would. */
+export function useNotificationsSimulator(enabled: boolean) {
+  const addNotification = useNotificationsStore((s) => s.addNotification);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    function schedule() {
+      const delay = MIN_DELAY_MS + Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS);
+      timeout = setTimeout(() => {
+        addNotification(randomNotification());
+        schedule();
+      }, delay);
+    }
+
+    schedule();
+    return () => clearTimeout(timeout);
+  }, [enabled, addNotification]);
+}

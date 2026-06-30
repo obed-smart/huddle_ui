@@ -9,9 +9,11 @@ import { CreateGroupModal } from "@/components/sidebar/CreateGroupModal";
 import { JoinGroupModal } from "@/components/sidebar/JoinGroupModal";
 import { MobileNav } from "@/components/sidebar/MobileNav";
 import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
+import { PushToast } from "@/components/notifications/PushToast";
 import { UsernameModal } from "@/features/auth/UsernameModal";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePresenceSimulator } from "@/store/usePresenceSimulator";
+import { useNotificationsSimulator } from "@/store/useNotificationsSimulator";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_ONLY_ROUTE = /^\/chat\/?$/;
@@ -24,6 +26,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isDetail = !SIDEBAR_ONLY_ROUTE.test(pathname);
 
   usePresenceSimulator(hasHydrated && isAuthenticated);
+  useNotificationsSimulator(hasHydrated && isAuthenticated);
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) router.replace("/login");
@@ -47,6 +50,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </main>
       </div>
       <MobileNav />
+      <PushToast />
       <UsernameModal />
       <SearchUsersModal />
       <ConversationRequestsModal />

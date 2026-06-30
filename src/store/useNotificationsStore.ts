@@ -4,13 +4,16 @@ import { seedNotifications } from "@/lib/seed-data";
 
 interface NotificationsState {
   notifications: NotificationItem[];
+  toastQueue: NotificationItem[];
   markRead: (id: string) => void;
   markAllRead: () => void;
   addNotification: (input: Omit<NotificationItem, "id" | "createdAt" | "read">) => void;
+  dismissToast: (id: string) => void;
 }
 
 export const useNotificationsStore = create<NotificationsState>()((set) => ({
   notifications: seedNotifications,
+  toastQueue: [],
 
   markRead: (id) =>
     set((state) => ({
@@ -23,10 +26,19 @@ export const useNotificationsStore = create<NotificationsState>()((set) => ({
     })),
 
   addNotification: (input) =>
-    set((state) => ({
-      notifications: [
-        { ...input, id: `n-${Date.now()}`, createdAt: new Date().toISOString(), read: false },
-        ...state.notifications,
-      ],
-    })),
+    set((state) => {
+      const notification: NotificationItem = {
+        ...input,
+        id: `n-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        read: false,
+      };
+      return {
+        notifications: [notification, ...state.notifications],
+        toastQueue: [...state.toastQueue, notification],
+      };
+    }),
+
+  dismissToast: (id) =>
+    set((state) => ({ toastQueue: state.toastQueue.filter((n) => n.id !== id) })),
 }));
