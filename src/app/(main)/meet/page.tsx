@@ -22,7 +22,7 @@ export default function MeetIndexPage() {
         cameraOff: false,
         role: "member" as const,
       })),
-    ]);
+    ], "instant");
     router.push("/meet/instant");
   }
 

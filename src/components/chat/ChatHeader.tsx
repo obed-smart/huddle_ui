@@ -58,7 +58,8 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
         muted: false,
         cameraOff: false,
         role: userId === CURRENT_USER_ID ? "host" : "member",
-      }))
+      })),
+      conversation.id
     );
     addMeetMessage(conversation.id, { meetId, title: name, startedBy: CURRENT_USER_ID });
     router.push(`/meet/${conversation.id}`);

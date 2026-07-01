@@ -24,11 +24,6 @@ export function ProfileMenu() {
         <Settings className="size-4 shrink-0 text-muted-foreground" />
       </button>
 
-      {/* Mobile: show user info only; Settings is in the bottom navigation */}
-      <div className="flex items-center gap-2.5 p-2 md:hidden">
-        <Avatar name={user.name} imageUrl={user.avatarUrl} size="sm" presence={user.status} />
-        <span className="flex-1 truncate text-sm font-medium text-foreground">{user.name}</span>
-      </div>
     </div>
   );
 }

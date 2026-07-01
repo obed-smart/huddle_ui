@@ -8,7 +8,7 @@ interface MeetState {
   isCameraOff: boolean;
   isRightPanelOpen: boolean;
   rightPanelTab: "participants" | "chat" | "files";
-  startMeet: (title: string, participants: MeetParticipant[]) => string;
+  startMeet: (title: string, participants: MeetParticipant[], conversationId: string) => string;
   endMeet: () => void;
   toggleScreenShare: () => void;
   toggleMute: () => void;
@@ -27,11 +27,12 @@ export const useMeetStore = create<MeetState>()((set) => ({
   isRightPanelOpen: true,
   rightPanelTab: "participants",
 
-  startMeet: (title, participants) => {
+  startMeet: (title, participants, conversationId) => {
     const id = `meet-${Date.now()}`;
     set({
       activeMeet: {
         id,
+        conversationId,
         title,
         startedAt: new Date().toISOString(),
         participants,
