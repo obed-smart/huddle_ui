@@ -3,10 +3,10 @@
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getUserById } from "@/lib/seed-data";
-import type { ConversationRequest } from "@/types";
+import type { Ping } from "@/types";
 
 interface RequestCardProps {
-  request: ConversationRequest;
+  request: Ping;
   onAccept: () => void;
   onDecline: () => void;
 }

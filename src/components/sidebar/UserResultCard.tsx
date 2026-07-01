@@ -32,9 +32,9 @@ export function UserResultCard({ user, onClick }: UserResultCardProps) {
         <span className="block truncate text-sm text-muted-foreground">@{user.username}</span>
       </span>
       {relation === "none" && (
-        <span className="shrink-0 text-xs font-medium text-primary">Request</span>
+        <span className="shrink-0 text-xs font-medium text-primary">Ping</span>
       )}
-      {isPending && <span className="shrink-0 text-xs font-medium text-muted-foreground">Pending</span>}
+      {isPending && <span className="shrink-0 text-xs font-medium text-muted-foreground">Pinged</span>}
     </button>
   );
 }

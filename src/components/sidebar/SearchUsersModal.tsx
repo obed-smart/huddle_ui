@@ -16,7 +16,7 @@ export function SearchUsersModal() {
   const [query, setQuery] = useState("");
   const activeModal = useUIStore((s) => s.activeModal);
   const closeModal = useUIStore((s) => s.closeModal);
-  const sendConversationRequest = useConversationRequestStore((s) => s.sendConversationRequest);
+  const sendPing = useConversationRequestStore((s) => s.sendPing);
   const open = activeModal === "search-users";
 
   const q = query.trim().toLowerCase().replace(/^@/, "");
@@ -32,7 +32,7 @@ export function SearchUsersModal() {
   }
 
   function handleSelect(userId: string) {
-    const result = sendConversationRequest(userId);
+    const result = sendPing(userId);
     if (result.status === "existing") {
       handleOpenChange(false);
       router.push(`/chat/${result.conversationId}`);
@@ -44,7 +44,7 @@ export function SearchUsersModal() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Find people"
-      description="Search by exact @username to send a conversation request."
+      description="Search by exact @username to send a Ping."
     >
       <div className="space-y-3">
         <Input

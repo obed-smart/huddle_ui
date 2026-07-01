@@ -105,7 +105,7 @@ export interface MeetSession {
   pinnedUserId?: string;
 }
 
-export type NotificationType = "message" | "call" | "mention" | "system" | "request";
+export type NotificationType = "message" | "call" | "mention" | "system" | "ping";
 
 export interface NotificationItem {
   id: string;
@@ -117,13 +117,13 @@ export interface NotificationItem {
   avatarUrl?: string;
 }
 
-export type ConversationRequestStatus = "pending" | "accepted" | "declined";
+export type PingStatus = "pending" | "accepted" | "declined";
 
-export interface ConversationRequest {
+export interface Ping {
   id: string;
   fromUserId: string;
   toUserId: string;
-  status: ConversationRequestStatus;
+  status: PingStatus;
   createdAt: string;
 }
 

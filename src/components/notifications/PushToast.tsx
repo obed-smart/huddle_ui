@@ -24,7 +24,7 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
   function handleClick() {
     markRead(notification.id);
     dismissToast(notification.id);
-    openModal(notification.type === "request" ? "conversation-requests" : "notifications");
+    openModal(notification.type === "ping" ? "pings" : "notifications");
   }
 
   return (

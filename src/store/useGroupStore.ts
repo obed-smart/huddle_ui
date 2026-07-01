@@ -90,7 +90,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       .getState()
       .conversations.find((c) => c.id === request.conversationId);
     useNotificationsStore.getState().addNotification({
-      type: "request",
+      type: "system",
       title: conversation?.name ?? "Group",
       body: accepted ? "Your request to join was accepted" : "Your request to join was declined",
     });

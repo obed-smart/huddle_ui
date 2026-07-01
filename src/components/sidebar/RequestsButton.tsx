@@ -10,7 +10,7 @@ export const RequestsButton = forwardRef<HTMLButtonElement, RequestsButtonProps>
   ({ count, ...props }, ref) => {
     return (
       <span className="relative inline-flex">
-        <IconButton ref={ref} label="Conversation requests" {...props}>
+        <IconButton ref={ref} label="Pings" {...props}>
           <UserPlus />
         </IconButton>
         {count > 0 && (
