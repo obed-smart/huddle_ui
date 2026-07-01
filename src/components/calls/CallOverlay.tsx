@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CallControls } from "./CallControls";
 import { OutgoingCallPanel } from "./OutgoingCallPanel";
@@ -18,6 +19,17 @@ interface CallOverlayProps {
 
 export function CallOverlay({ conversationId }: CallOverlayProps) {
   const router = useRouter();
+
+  // Intercept browser/hardware back: minimize call rather than ending it
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    function handlePopState() {
+      window.history.pushState(null, "", window.location.href);
+      router.push(`/chat/${conversationId}`);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [router, conversationId]);
   const activeCall = useCallStore((s) => s.activeCall);
   const conversation = useChatStore((s) => s.conversations.find((c) => c.id === conversationId));
 
