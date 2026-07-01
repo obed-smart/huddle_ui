@@ -12,7 +12,7 @@ export function ScreenShareView({ meet }: ScreenShareViewProps) {
   const presenter = presenterId ? getUserById(presenterId) : undefined;
   const isSelf = presenterId === CURRENT_USER_ID;
   const presenterName = isSelf ? "You" : presenter?.name ?? "Someone";
-  const others = meet.participants.filter((p) => p.userId !== presenterId);
+  const others = meet.participants;
 
   return (
     <div className="flex h-full flex-col gap-3 p-4 md:p-6">

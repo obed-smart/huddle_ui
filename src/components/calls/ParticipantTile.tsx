@@ -9,6 +9,20 @@ interface ParticipantTileProps {
   className?: string;
 }
 
+function SpeakingWaveform() {
+  return (
+    <span className="flex items-end gap-[2px] h-3">
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-full bg-primary animate-bounce"
+          style={{ animationDelay: `${i * 80}ms`, height: `${50 + (i % 2) * 30}%` }}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function ParticipantTile({ participant, className }: ParticipantTileProps) {
   const user = getUserById(participant.userId);
   const name = participant.userId === CURRENT_USER_ID ? "You" : user?.name ?? "Unknown";
@@ -37,7 +51,11 @@ export function ParticipantTile({ participant, className }: ParticipantTileProps
       </div>
 
       <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-slate-900/70 px-2 py-1 text-xs font-medium text-white">
-        {participant.muted && <MicOff className="size-3" />}
+        {participant.isSpeaking ? (
+          <SpeakingWaveform />
+        ) : (
+          participant.muted && <MicOff className="size-3" />
+        )}
         <span>{name}</span>
       </div>
     </div>

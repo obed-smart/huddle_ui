@@ -21,6 +21,7 @@ interface ChatState {
   addConversation: (conversation: Conversation) => void;
   addCallMessage: (conversationId: string, call: CallEvent) => void;
   addMeetMessage: (conversationId: string, meet: MeetEvent) => void;
+  markMeetEnded: (conversationId: string, meetId: string, durationSeconds: number) => void;
   toggleReaction: (conversationId: string, messageId: string, emoji: string, userId: string) => void;
   addMemberToConversation: (conversationId: string, userId: string) => void;
   getConversationByInviteCode: (code: string) => Conversation | undefined;
@@ -166,6 +167,19 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       messagesByConversation: {
         ...state.messagesByConversation,
         [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
+      },
+    }));
+  },
+
+  markMeetEnded: (conversationId, meetId, durationSeconds) => {
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: (state.messagesByConversation[conversationId] ?? []).map((m) =>
+          m.meet?.meetId === meetId
+            ? { ...m, meet: { ...m.meet, endedAt: new Date().toISOString(), durationSeconds } }
+            : m
+        ),
       },
     }));
   },

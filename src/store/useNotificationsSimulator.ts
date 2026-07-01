@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { CURRENT_USER_ID, seedUsers } from "@/lib/seed-data";
+import { CURRENT_USER_ID, seedConversations, seedUsers } from "@/lib/seed-data";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 import type { NotificationType } from "@/types";
 
@@ -16,6 +16,17 @@ const TEMPLATES: { type: NotificationType; body: (name: string) => string }[] = 
   { type: "call", body: () => "Missed call · just now" },
 ];
 
+function getConversationId(userId: string): string | undefined {
+  const dm = seedConversations.find(
+    (c) => c.type === "dm" && c.participantIds.includes(userId) && c.participantIds.includes(CURRENT_USER_ID)
+  );
+  if (dm) return dm.id;
+  const group = seedConversations.find(
+    (c) => c.type === "group" && c.participantIds.includes(userId) && c.participantIds.includes(CURRENT_USER_ID)
+  );
+  return group?.id;
+}
+
 function randomNotification() {
   const user = OTHER_USERS[Math.floor(Math.random() * OTHER_USERS.length)];
   const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
@@ -23,6 +34,8 @@ function randomNotification() {
     type: template.type,
     title: template.type === "call" ? `Missed call from ${user.name}` : user.name,
     body: template.body(user.name),
+    userId: user.id,
+    conversationId: getConversationId(user.id),
   };
 }
 

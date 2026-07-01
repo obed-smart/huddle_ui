@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { IconButton } from "@/components/ui/icon-button";
 import { ArrowLeft } from "@/components/ui/icons";
@@ -22,6 +23,7 @@ function MarkAllReadButton({ onClick }: { onClick: () => void }) {
 }
 
 export function NotificationDropdown() {
+  const router = useRouter();
   const { notifications, markRead, markAllRead } = useNotificationsStore();
   const { activeModal, openModal, closeModal } = useUIStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -34,7 +36,12 @@ export function NotificationDropdown() {
 
   function handleSelect(notification: NotificationItemType) {
     markRead(notification.id);
-    if (notification.type === "ping") openModal("pings");
+    closeModal();
+    if (notification.type === "ping") {
+      openModal("pings");
+    } else if (notification.conversationId) {
+      router.push(`/chat/${notification.conversationId}`);
+    }
   }
 
   return (

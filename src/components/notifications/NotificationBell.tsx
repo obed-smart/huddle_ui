@@ -15,7 +15,7 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
           <Bell />
         </IconButton>
         {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 size-2 rounded-full bg-destructive ring-2 ring-surface" />
+          <span className="absolute right-1 top-1 hidden size-2 rounded-full bg-destructive ring-2 ring-surface md:block" />
         )}
       </span>
     );

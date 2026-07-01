@@ -13,6 +13,7 @@ import {
   Video,
   VideoOff,
 } from "@/components/ui/icons";
+import { useChatStore } from "@/store/useChatStore";
 import { useMeetStore } from "@/store/useMeetStore";
 
 export function MeetControls() {
@@ -30,6 +31,11 @@ export function MeetControls() {
   const endMeet = useMeetStore((s) => s.endMeet);
 
   function handleLeave() {
+    const meet = useMeetStore.getState().activeMeet;
+    if (meet) {
+      const durationSeconds = Math.floor((Date.now() - new Date(meet.startedAt).getTime()) / 1000);
+      useChatStore.getState().markMeetEnded(meet.conversationId, meet.id, durationSeconds);
+    }
     endMeet();
     router.push("/meet");
   }

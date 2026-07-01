@@ -43,6 +43,8 @@ export interface MeetEvent {
   meetId: string;
   title: string;
   startedBy: string;
+  endedAt?: string;
+  durationSeconds?: number;
 }
 
 export interface Message {
@@ -97,6 +99,7 @@ export interface MeetParticipant extends CallParticipant {
 
 export interface MeetSession {
   id: string;
+  conversationId: string;
   title: string;
   startedAt: string;
   participants: MeetParticipant[];
@@ -115,6 +118,8 @@ export interface NotificationItem {
   createdAt: string;
   read: boolean;
   avatarUrl?: string;
+  userId?: string;
+  conversationId?: string;
 }
 
 export type PingStatus = "pending" | "accepted" | "declined";

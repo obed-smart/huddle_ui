@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { MessagesSquare, Video, Bell, Settings } from "@/components/ui/icons";
+import { MessagesSquare, Bell, Settings } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/useUIStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
@@ -24,13 +24,6 @@ export function MobileNav() {
       icon: MessagesSquare,
       active: pathname.startsWith("/chat"),
       onClick: () => router.push("/chat"),
-    },
-    {
-      id: "meet",
-      label: "Meet",
-      icon: Video,
-      active: pathname.startsWith("/meet"),
-      onClick: () => router.push("/meet"),
     },
     {
       id: "notifications",
