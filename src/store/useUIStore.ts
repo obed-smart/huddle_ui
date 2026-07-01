@@ -8,6 +8,7 @@ export type ModalId =
   | "pings"
   | "create-group"
   | "join-group"
+  | "settings"
   | null;
 
 interface UIState {

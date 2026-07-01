@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { PresenceStatus } from "@/types";
-import { User } from "./icons";
+import { UserRound } from "./icons";
 import { Dot } from "./dot";
 
 const SIZE_MAP = {
@@ -72,7 +72,7 @@ export function Avatar({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imageUrl} alt="" className="size-full object-cover" />
         ) : (
-          <User className={FALLBACK_ICON_SIZE[size]} strokeWidth={1.5} />
+          <UserRound className={FALLBACK_ICON_SIZE[size]} strokeWidth={1.5} />
         )}
       </span>
       <span className="sr-only">{name}</span>

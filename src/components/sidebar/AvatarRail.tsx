@@ -7,7 +7,7 @@ import { Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/useChatStore";
 import { useUIStore } from "@/store/useUIStore";
-import { usePresence } from "@/store/usePresenceStore";
+import { usePresence, usePresenceStore } from "@/store/usePresenceStore";
 import { getUserById } from "@/lib/seed-data";
 import { getConversationMemberNames, getOtherParticipantIds } from "@/lib/conversation-utils";
 import type { Conversation } from "@/types";
@@ -16,7 +16,15 @@ export function AvatarRail() {
   const router = useRouter();
   const { conversations, activeConversationId, setActiveConversation } = useChatStore();
   const openModal = useUIStore((s) => s.openModal);
-  const rail = conversations.slice(0, 7);
+  const statuses = usePresenceStore((s) => s.statuses);
+
+  const rail = conversations
+    .filter((c) => {
+      if (c.type === "group") return true;
+      const otherId = getOtherParticipantIds(c)[0];
+      return otherId ? (statuses[otherId] ?? "offline") === "online" : false;
+    })
+    .slice(0, 8);
 
   function handleSelect(id: string) {
     setActiveConversation(id);
@@ -29,12 +37,12 @@ export function AvatarRail() {
         type="button"
         onClick={() => openModal("search-users")}
         aria-label="Find people"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-10 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Plus className="size-4" />
       </button>
 
-      <div className="scrollbar-thin flex items-center gap-3 overflow-x-auto">
+      <div className="flex items-center gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
         {rail.map((conversation) => (
           <AvatarRailItem
             key={conversation.id}

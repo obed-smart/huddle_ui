@@ -84,4 +84,5 @@ export {
   Camera,
   StopCircle,
   Film,
+  UserRound,
 } from "lucide-react";

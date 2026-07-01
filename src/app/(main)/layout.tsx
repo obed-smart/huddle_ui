@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { ActiveCallBar } from "@/components/calls/ActiveCallBar";
 import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
 import { ChatSidebar } from "@/components/sidebar/ChatSidebar";
 import { ConversationRequestsModal } from "@/components/sidebar/ConversationRequestsModal";
@@ -9,8 +10,10 @@ import { CreateGroupModal } from "@/components/sidebar/CreateGroupModal";
 import { JoinGroupModal } from "@/components/sidebar/JoinGroupModal";
 import { MobileNav } from "@/components/sidebar/MobileNav";
 import { SearchUsersModal } from "@/components/sidebar/SearchUsersModal";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { PushToast } from "@/components/notifications/PushToast";
 import { UsernameModal } from "@/features/auth/UsernameModal";
+import { SettingsSheet } from "@/features/settings/SettingsSheet";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePresenceSimulator } from "@/store/usePresenceSimulator";
 import { useNotificationsSimulator } from "@/store/useNotificationsSimulator";
@@ -36,6 +39,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex h-dvh flex-col">
+      <ActiveCallBar />
       <div className="flex flex-1 overflow-hidden">
         <div
           className={cn(
@@ -57,6 +61,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <CreateGroupModal />
       <JoinGroupModal />
       <IncomingCallModal />
+      <NotificationDropdown />
+      <SettingsSheet />
     </div>
   );
 }
