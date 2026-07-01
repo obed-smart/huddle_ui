@@ -30,10 +30,18 @@ export function OutgoingCallPanel({ call, name }: OutgoingCallPanelProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-      <Avatar name={name} size="xl" presence={isDeclined ? undefined : "online"} pulse={!isDeclined} />
-      <div>
-        <p className="font-heading text-lg font-semibold text-foreground">{name}</p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+      <div className="relative flex items-center justify-center">
+        {!isDeclined && (
+          <>
+            <span className="absolute size-24 animate-ping rounded-full bg-primary/20" />
+            <span className="absolute size-32 animate-ping rounded-full bg-primary/10 [animation-delay:300ms]" />
+          </>
+        )}
+        <Avatar name={name} size="xl" presence={isDeclined ? undefined : "online"} />
+      </div>
+      <div className="space-y-1">
+        <p className="font-heading text-xl font-semibold text-foreground">{name}</p>
         <p className="text-sm text-muted-foreground">{STATUS_LABEL[call.status] ?? "Calling…"}</p>
       </div>
       {!isDeclined && (

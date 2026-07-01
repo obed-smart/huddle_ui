@@ -23,21 +23,23 @@ export function CallControls({ conversationId }: CallControlsProps) {
   }
 
   return (
-    <div className="flex shrink-0 items-center justify-center gap-3 py-6">
-      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
-        {isMuted ? <MicOff /> : <Mic />}
-      </IconButton>
-      <IconButton
-        label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-        variant="filled"
-        size="lg"
-        onClick={toggleCamera}
-      >
-        {isCameraOff ? <VideoOff /> : <Video />}
-      </IconButton>
-      <IconButton label="End call" variant="destructive" size="lg" onClick={handleEnd}>
-        <PhoneOff />
-      </IconButton>
+    <div className="flex shrink-0 justify-center px-4 pb-6 pt-3">
+      <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
+        <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
+          {isMuted ? <MicOff /> : <Mic />}
+        </IconButton>
+        <IconButton
+          label={isCameraOff ? "Turn camera on" : "Turn camera off"}
+          variant="filled"
+          size="lg"
+          onClick={toggleCamera}
+        >
+          {isCameraOff ? <VideoOff /> : <Video />}
+        </IconButton>
+        <IconButton label="End call" variant="destructive" size="lg" onClick={handleEnd}>
+          <PhoneOff />
+        </IconButton>
+      </div>
     </div>
   );
 }
