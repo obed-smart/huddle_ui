@@ -106,7 +106,7 @@ export function MeetOverlay() {
 
       {/* Mobile: Sheet overlay */}
       <Sheet open={isRightPanelOpen} onOpenChange={(open) => !open && closeRightPanel()}>
-        <SheetContent side="right" className="flex w-80 flex-col md:hidden">
+        <SheetContent side="right" className="flex flex-col md:hidden">
           <PanelContent
             rightPanelTab={rightPanelTab}
             openRightPanel={openRightPanel}

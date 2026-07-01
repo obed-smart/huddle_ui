@@ -32,12 +32,15 @@ export function MeetControls() {
 
   function handleLeave() {
     const meet = useMeetStore.getState().activeMeet;
+    const destination = meet && meet.conversationId !== "instant"
+      ? `/chat/${meet.conversationId}`
+      : "/chat";
     if (meet) {
       const durationSeconds = Math.floor((Date.now() - new Date(meet.startedAt).getTime()) / 1000);
       useChatStore.getState().markMeetEnded(meet.conversationId, meet.id, durationSeconds);
     }
     endMeet();
-    router.push("/meet");
+    router.push(destination);
   }
 
   return (

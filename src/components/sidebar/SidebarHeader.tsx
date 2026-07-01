@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { IconButton } from "@/components/ui/icon-button";
 import {
@@ -16,13 +17,19 @@ import { useUIStore } from "@/store/useUIStore";
 import { usePendingIncomingRequests } from "@/store/useConversationRequestStore";
 
 export function SidebarHeader() {
+  const router = useRouter();
   const openModal = useUIStore((s) => s.openModal);
   const incoming = usePendingIncomingRequests();
   const user = useAuthStore((s) => s.user);
 
   return (
     <div className="flex items-center justify-between gap-2 px-5 pt-5">
-      <div className="flex items-center gap-2.5">
+      <button
+        type="button"
+        onClick={() => router.push("/settings")}
+        className="flex items-center gap-2.5 rounded-(--radius-sm) transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label="Open settings"
+      >
         <Avatar
           name={user?.name ?? "Me"}
           imageUrl={user?.avatarUrl}
@@ -30,7 +37,7 @@ export function SidebarHeader() {
           presence={user?.status ?? "online"}
         />
         <span className="font-heading text-lg font-semibold text-foreground">{user?.name ?? "Huddle"}</span>
-      </div>
+      </button>
       <div className="flex items-center gap-1">
         <RequestsButton count={incoming.length} onClick={() => openModal("pings")} />
         <NotificationDropdown />
