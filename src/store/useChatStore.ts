@@ -23,6 +23,7 @@ interface ChatState {
   addMeetMessage: (conversationId: string, meet: MeetEvent) => void;
   markMeetEnded: (conversationId: string, meetId: string, durationSeconds: number) => void;
   toggleReaction: (conversationId: string, messageId: string, emoji: string, userId: string) => void;
+  sendVoiceMessage: (conversationId: string, durationSeconds: number) => void;
   addMemberToConversation: (conversationId: string, userId: string) => void;
   getConversationByInviteCode: (code: string) => Conversation | undefined;
 }
@@ -198,6 +199,29 @@ export const useChatStore = create<ChatState>()((set, get) => ({
           if (reactions[emoji].length === 0) delete reactions[emoji];
           return { ...m, reactions };
         }),
+      },
+    }));
+  },
+
+  sendVoiceMessage: (conversationId, durationSeconds) => {
+    const attachment: Attachment = {
+      id: `a-${Date.now()}`,
+      type: "voice",
+      name: `voice-${Date.now()}.webm`,
+      durationSeconds,
+    };
+    const message: Message = {
+      id: `m-${Date.now()}`,
+      conversationId,
+      senderId: CURRENT_USER_ID,
+      attachments: [attachment],
+      createdAt: new Date().toISOString(),
+      status: "sent",
+    };
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
       },
     }));
   },
