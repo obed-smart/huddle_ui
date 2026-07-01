@@ -81,4 +81,7 @@ export {
   Pencil,
   Globe,
   Link2,
+  Camera,
+  StopCircle,
+  Film,
 } from "lucide-react";
