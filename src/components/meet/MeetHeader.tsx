@@ -1,6 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import { CallTimer } from "@/components/shared/CallTimer";
 import { IconButton } from "@/components/ui/icon-button";
-import { MoreHorizontal, Share2, Users } from "@/components/ui/icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Lock, Mic, MicOff, MoreHorizontal, Share2, Users } from "@/components/ui/icons";
+import { useMeetStore } from "@/store/useMeetStore";
 import type { MeetSession } from "@/types";
 
 interface MeetHeaderProps {
@@ -8,6 +18,16 @@ interface MeetHeaderProps {
 }
 
 export function MeetHeader({ meet }: MeetHeaderProps) {
+  const [locked, setLocked] = useState(false);
+  const toggleParticipantMute = useMeetStore((s) => s.toggleParticipantMute);
+  const isInstant = meet.conversationId === "instant";
+
+  function handleMuteAll() {
+    meet.participants.forEach((p) => {
+      if (!p.muted) toggleParticipantMute(p.userId);
+    });
+  }
+
   return (
     <header className="flex shrink-0 items-center gap-3 border-b border-border bg-surface px-4 py-3 md:px-6">
       <div className="min-w-0 flex-1">
@@ -25,12 +45,30 @@ export function MeetHeader({ meet }: MeetHeaderProps) {
           <Users className="size-3" />
           {meet.participants.length}
         </span>
-        <IconButton label="Share meeting">
-          <Share2 />
-        </IconButton>
-        <IconButton label="More options">
-          <MoreHorizontal />
-        </IconButton>
+
+        {isInstant && (
+          <IconButton label="Share meeting link">
+            <Share2 />
+          </IconButton>
+        )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <IconButton label="More options">
+              <MoreHorizontal />
+            </IconButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={handleMuteAll}>
+              <MicOff />
+              Mute all participants
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setLocked((v) => !v)}>
+              {locked ? <Mic /> : <Lock />}
+              {locked ? "Unlock meeting" : "Lock meeting"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

@@ -24,7 +24,7 @@ export function AvatarRail() {
   }
 
   return (
-    <div className="scrollbar-thin flex items-center gap-3 overflow-x-auto px-5 pb-1 pt-4">
+    <div className="flex items-center gap-3 px-5 pb-1 pt-4">
       <button
         type="button"
         onClick={() => openModal("search-users")}
@@ -34,14 +34,16 @@ export function AvatarRail() {
         <Plus className="size-4" />
       </button>
 
-      {rail.map((conversation) => (
-        <AvatarRailItem
-          key={conversation.id}
-          conversation={conversation}
-          isActive={conversation.id === activeConversationId}
-          onClick={() => handleSelect(conversation.id)}
-        />
-      ))}
+      <div className="scrollbar-thin flex items-center gap-3 overflow-x-auto">
+        {rail.map((conversation) => (
+          <AvatarRailItem
+            key={conversation.id}
+            conversation={conversation}
+            isActive={conversation.id === activeConversationId}
+            onClick={() => handleSelect(conversation.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
