@@ -79,6 +79,7 @@ export function Avatar({
       {presence && (
         <Dot
           status={presence}
+          size={size === "xs" || size === "sm" ? "sm" : size === "lg" || size === "xl" ? "lg" : "md"}
           className="absolute -right-0.5 -bottom-0.5 ring-2 ring-white"
         />
       )}

@@ -1,22 +1,12 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { seedUsers } from "@/lib/seed-data";
-
-const showcaseUsers = seedUsers.slice(1, 5);
 
 export function HeroSection() {
   return (
     <section className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
       <div className="space-y-6">
-        <Badge variant="primary" className="gap-1.5">
-          <Sparkles className="size-3.5" />
-          Now in public beta
-        </Badge>
-
         <h1 className="font-heading text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
           Chat, call, and meet — without the chaos.
         </h1>
@@ -33,25 +23,6 @@ export function HeroSection() {
           <Button asChild variant="outline" size="lg">
             <Link href="/login">Sign in</Link>
           </Button>
-        </div>
-
-        <div className="flex items-center gap-3 pt-4">
-          <div className="flex -space-x-2">
-            {showcaseUsers.map((user) => (
-              <Avatar
-                key={user.id}
-                name={user.name}
-                size="md"
-                presence={user.status === "online" ? "online" : undefined}
-                pulse
-                className="[&>span:first-child]:ring-background"
-              />
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Joined by <span className="font-semibold text-foreground">2,400+</span> teams this
-            month
-          </p>
         </div>
       </div>
 
