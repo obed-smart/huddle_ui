@@ -1,5 +1,5 @@
 import { Avatar } from "@/components/ui/avatar";
-import { Hand, Mic, MicOff } from "@/components/ui/icons";
+import { Crown, Hand, Mic, MicOff } from "@/components/ui/icons";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
 import type { MeetParticipant } from "@/types";
@@ -15,7 +15,7 @@ export function ParticipantRow({ participant, onToggleMute }: ParticipantRowProp
   const name = isSelf ? "You" : user?.name ?? "Unknown";
 
   return (
-    <div className="flex items-center gap-3 rounded-(--radius-sm) px-3 py-2 transition-colors hover:bg-surface-hover">
+    <div className={cn("flex items-center gap-3 rounded-(--radius-sm) px-3 py-2 transition-colors hover:bg-surface-hover", participant.role === "host" && "border-l-2 border-primary pl-2.5")}>
       <Avatar name={user?.name ?? "Unknown"} size="sm" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-foreground">
@@ -30,7 +30,8 @@ export function ParticipantRow({ participant, onToggleMute }: ParticipantRowProp
       </span>
       {participant.handRaised && <Hand className="size-3.5 shrink-0 text-warning" />}
       {participant.role === "host" ? (
-        <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
+          <Crown className="size-2.5" />
           Host
         </span>
       ) : (

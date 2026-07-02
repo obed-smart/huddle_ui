@@ -76,6 +76,7 @@ export function MeetControls() {
         >
           <Users />
         </IconButton>
+        <div className="mx-1 h-8 w-px bg-border" />
         <IconButton label="Leave meeting" variant="destructive" size="lg" onClick={handleLeave}>
           <PhoneOff />
         </IconButton>

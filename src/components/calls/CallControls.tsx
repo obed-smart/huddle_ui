@@ -36,6 +36,7 @@ export function CallControls({ conversationId }: CallControlsProps) {
         >
           {isCameraOff ? <VideoOff /> : <Video />}
         </IconButton>
+        <div className="mx-1 h-8 w-px bg-border" />
         <IconButton label="End call" variant="destructive" size="lg" onClick={handleEnd}>
           <PhoneOff />
         </IconButton>

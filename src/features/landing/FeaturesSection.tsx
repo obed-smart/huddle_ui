@@ -37,18 +37,46 @@ export function FeaturesSection() {
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
-            <div
-              key={title}
-              className="space-y-3 rounded-(--radius-lg) border border-border bg-surface p-5"
-            >
-              <div className="flex size-10 items-center justify-center rounded-(--radius-md) bg-secondary text-primary">
-                <Icon className="size-5" />
+          {FEATURES.map(({ icon: Icon, title, description }, index) => {
+            if (index === 1) {
+              return (
+                <div
+                  key={title}
+                  className="space-y-3 rounded-(--radius-lg) border border-border bg-surface p-5"
+                >
+                  <div className="flex items-center gap-2 rounded-(--radius-md) bg-secondary/60 px-3 py-2.5">
+                    <div className="flex -space-x-2">
+                      <span className="inline-flex size-7 items-center justify-center rounded-full bg-violet-100 text-[10px] font-semibold text-violet-700 ring-2 ring-surface">
+                        JK
+                      </span>
+                      <span className="inline-flex size-7 items-center justify-center rounded-full bg-blue-100 text-[10px] font-semibold text-blue-700 ring-2 ring-surface">
+                        HL
+                      </span>
+                    </div>
+                    <span className="font-mono text-[11px] text-muted-foreground">0:42</span>
+                    <div className="ml-auto flex gap-1.5">
+                      <span className="flex size-5 items-center justify-center rounded-full bg-muted" />
+                      <span className="flex size-5 items-center justify-center rounded-full bg-destructive" />
+                    </div>
+                  </div>
+                  <h3 className="font-heading text-sm font-semibold text-foreground">{title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+                </div>
+              );
+            }
+            return (
+              <div
+                key={title}
+                className="space-y-3 rounded-(--radius-lg) border border-border bg-surface p-5"
+              >
+                <div className="flex size-10 items-center justify-center rounded-(--radius-md) bg-secondary text-primary">
+                  <Icon className="size-5" />
+                </div>
+                <h3 className="font-heading text-sm font-semibold text-foreground">{title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
               </div>
-              <h3 className="font-heading text-sm font-semibold text-foreground">{title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

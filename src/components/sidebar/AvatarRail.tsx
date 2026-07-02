@@ -32,25 +32,28 @@ export function AvatarRail() {
   }
 
   return (
-    <div className="flex items-center gap-3 px-5 pb-1 pt-4">
-      <button
-        type="button"
-        onClick={() => openModal("search-users")}
-        aria-label="Find people"
-        className="flex size-10 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Plus className="size-4" />
-      </button>
+    <div className="px-5 pb-1 pt-4">
+      <p className="mb-2.5 text-xs font-semibold text-muted-foreground">Online now</p>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => openModal("search-users")}
+          aria-label="Find people"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Plus className="size-4" />
+        </button>
 
-      <div className="flex items-center gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
-        {rail.map((conversation) => (
-          <AvatarRailItem
-            key={conversation.id}
-            conversation={conversation}
-            isActive={conversation.id === activeConversationId}
-            onClick={() => handleSelect(conversation.id)}
-          />
-        ))}
+        <div className="flex items-center gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+          {rail.map((conversation) => (
+            <AvatarRailItem
+              key={conversation.id}
+              conversation={conversation}
+              isActive={conversation.id === activeConversationId}
+              onClick={() => handleSelect(conversation.id)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
