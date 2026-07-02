@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Modal } from "@/components/ui/modal";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Avatar } from "@/components/ui/avatar";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,19 @@ interface ReactionPillsProps {
 
 export function ReactionPills({ reactions, isOwn, onToggle }: ReactionPillsProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("all");
+
   const entries = Object.entries(reactions).filter(([, userIds]) => userIds.length > 0);
   if (entries.length === 0) return null;
+
+  const allReactors: { emoji: string; userId: string }[] = entries.flatMap(([emoji, userIds]) =>
+    userIds.map((userId) => ({ emoji, userId }))
+  );
+
+  const displayedReactors =
+    activeTab === "all"
+      ? allReactors
+      : allReactors.filter((r) => r.emoji === activeTab);
 
   return (
     <>
@@ -27,6 +38,7 @@ export function ReactionPills({ reactions, isOwn, onToggle }: ReactionPillsProps
             onClick={() => onToggle(emoji)}
             onContextMenu={(e) => {
               e.preventDefault();
+              setActiveTab("all");
               setDetailsOpen(true);
             }}
             className={cn(
@@ -42,7 +54,7 @@ export function ReactionPills({ reactions, isOwn, onToggle }: ReactionPillsProps
         ))}
         <button
           type="button"
-          onClick={() => setDetailsOpen(true)}
+          onClick={() => { setActiveTab("all"); setDetailsOpen(true); }}
           aria-label="See who reacted"
           className="flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground"
         >
@@ -50,30 +62,58 @@ export function ReactionPills({ reactions, isOwn, onToggle }: ReactionPillsProps
         </button>
       </div>
 
-      <Modal open={detailsOpen} onOpenChange={setDetailsOpen} title="Reactions">
-        <div className="scrollbar-thin -mx-2 max-h-80 space-y-3 overflow-y-auto px-2">
-          {entries.map(([emoji, userIds]) => (
-            <div key={emoji}>
-              <p className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
-                <span className="text-base">{emoji}</span>
-                {userIds.length}
-              </p>
-              <div className="space-y-1.5">
-                {userIds.map((userId) => {
-                  const user = getUserById(userId);
-                  const name = userId === CURRENT_USER_ID ? "You" : user?.name ?? "Unknown";
-                  return (
-                    <div key={userId} className="flex items-center gap-2">
-                      <Avatar name={name} size="xs" />
-                      <span className="text-sm text-foreground">{name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Modal>
+      <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <SheetContent side="right" className="flex flex-col p-0 w-full md:max-w-xs">
+          <SheetTitle className="sr-only">Reactions</SheetTitle>
+
+          {/* Tab bar: All | per-emoji */}
+          <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-4 py-3 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab("all")}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors",
+                activeTab === "all"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              All {allReactors.length}
+            </button>
+            {entries.map(([emoji, userIds]) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => setActiveTab(emoji)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium transition-colors",
+                  activeTab === emoji
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>{emoji}</span>
+                <span>{userIds.length}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Reactor list */}
+          <div className="scrollbar-thin flex-1 space-y-2 overflow-y-auto p-4">
+            {displayedReactors.map(({ emoji, userId }, i) => {
+              const user = getUserById(userId);
+              const name = userId === CURRENT_USER_ID ? "You" : (user?.name ?? "Unknown");
+              return (
+                <div key={`${emoji}-${userId}-${i}`} className="flex items-center gap-3">
+                  <Avatar name={name} imageUrl={user?.avatarUrl} size="sm" />
+                  <span className="flex-1 text-sm font-medium text-foreground">{name}</span>
+                  <span className="text-base">{emoji}</span>
+                </div>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
