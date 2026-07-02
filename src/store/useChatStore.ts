@@ -12,8 +12,10 @@ interface ChatState {
   activeConversationId: string | null;
   typingUsers: Record<string, string[]>;
   replyingTo: { conversationId: string; message: Message } | null;
+  editingMessage: { conversationId: string; message: Message } | null;
   setActiveConversation: (id: string | null) => void;
   setReplyingTo: (info: { conversationId: string; message: Message } | null) => void;
+  setEditingMessage: (info: { conversationId: string; message: Message } | null) => void;
   sendMessage: (conversationId: string, text: string) => void;
   editMessage: (conversationId: string, messageId: string, text: string) => void;
   sendAttachment: (conversationId: string, file: File) => void;
@@ -44,6 +46,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     "c-katie": [],
   },
   replyingTo: null,
+  editingMessage: null,
 
   setActiveConversation: (id) => {
     set({ activeConversationId: id });
@@ -51,6 +54,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   },
 
   setReplyingTo: (info) => set({ replyingTo: info }),
+  setEditingMessage: (info) => set({ editingMessage: info }),
 
   sendMessage: (conversationId, text) => {
     if (!text.trim()) return;

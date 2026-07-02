@@ -10,7 +10,7 @@ export function TypingIndicator({ userIds, showAvatar }: TypingIndicatorProps) {
   const user = getUserById(userIds[0]);
 
   return (
-    <div className="flex items-end gap-2.5">
+    <div className="flex items-end gap-2.5 animate-(--animate-typing-enter)">
       {showAvatar && <Avatar name={user?.name ?? "Unknown"} size="sm" />}
       <div className="flex items-center gap-1 rounded-(--radius-lg) bg-bubble-received px-4 py-3">
         {[0, 1, 2].map((i) => (

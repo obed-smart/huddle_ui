@@ -7,7 +7,7 @@ import { OutgoingCallPanel } from "./OutgoingCallPanel";
 import { ParticipantTile } from "./ParticipantTile";
 import { CallTimer } from "@/components/shared/CallTimer";
 import { IconButton } from "@/components/ui/icon-button";
-import { ArrowLeft } from "@/components/ui/icons";
+import { ArrowLeft, UserPlus } from "@/components/ui/icons";
 import { getConversationName } from "@/lib/conversation-utils";
 import { cn, getParticipantGridCols } from "@/lib/utils";
 import { useCallStore } from "@/store/useCallStore";
@@ -31,6 +31,7 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [router, conversationId]);
   const activeCall = useCallStore((s) => s.activeCall);
+  const devAddParticipant = useCallStore((s) => s.devAddParticipant);
   const conversation = useChatStore((s) => s.conversations.find((c) => c.id === conversationId));
 
   if (!activeCall) return null;
@@ -49,6 +50,11 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
           <p className="truncate text-sm font-semibold text-foreground">{name}</p>
           <CallTimer startedAt={activeCall.startedAt} className="text-xs text-muted-foreground" />
         </div>
+        {isLive && (
+          <IconButton label="Add participant (dev)" size="sm" onClick={devAddParticipant}>
+            <UserPlus />
+          </IconButton>
+        )}
       </header>
 
       {isLive ? (

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { DMInfoPanel } from "./DMInfoPanel";
 import { GroupAvatar } from "@/components/ui/group-avatar";
 import { IconButton } from "@/components/ui/icon-button";
 import {
@@ -38,6 +40,7 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const startMeet = useMeetStore((s) => s.startMeet);
   const activeMeet = useMeetStore((s) => s.activeMeet);
 
+  const [dmInfoOpen, setDmInfoOpen] = useState(false);
   const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
   const otherStatus = usePresence(otherId);
 
@@ -93,11 +96,20 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
         </button>
       ) : (
         <>
-          <Avatar name={name} size="sm" presence={otherStatus} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-            <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setDmInfoOpen(true)}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-(--radius-md) text-left transition-opacity hover:opacity-80"
+          >
+            <Avatar name={name} size="sm" presence={otherStatus} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+              <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
+            </div>
+          </button>
+          {otherId && (
+            <DMInfoPanel userId={otherId} open={dmInfoOpen} onOpenChange={setDmInfoOpen} />
+          )}
         </>
       )}
 

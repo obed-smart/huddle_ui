@@ -21,17 +21,16 @@ const QUICK_EMOJIS = ["❤️", "😂", "👍", "😮", "😢", "🙏"];
 interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
+  isLast?: boolean;
 }
 
-export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
+export function MessageBubble({ message, isOwn, isLast }: MessageBubbleProps) {
   const toggleReaction = useChatStore((s) => s.toggleReaction);
   const setReplyingTo = useChatStore((s) => s.setReplyingTo);
-  const editMessage = useChatStore((s) => s.editMessage);
+  const setEditingMessage = useChatStore((s) => s.setEditingMessage);
 
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [editText, setEditText] = useState(message.text ?? "");
 
   // Swipe-to-reply state
   const [swipeX, setSwipeX] = useState(0);
@@ -68,20 +67,7 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
 
   function handleEditStart() {
     setActionMenuOpen(false);
-    setEditText(message.text ?? "");
-    setEditMode(true);
-  }
-
-  function handleEditSave() {
-    if (editText.trim() && editText.trim() !== message.text) {
-      editMessage(message.conversationId, message.id, editText.trim());
-    }
-    setEditMode(false);
-  }
-
-  function handleEditCancel() {
-    setEditMode(false);
-    setEditText(message.text ?? "");
+    setEditingMessage({ conversationId: message.conversationId, message });
   }
 
   function startLongPress() {
@@ -144,49 +130,26 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
         {/* Message bubble with long-press / right-click action menu */}
         <Popover open={actionMenuOpen} onOpenChange={setActionMenuOpen}>
           <PopoverTrigger asChild>
-            {editMode ? (
-              <div
-                className={cn(
-                  "flex flex-col gap-2 rounded-(--radius-lg) px-3.5 py-2.5",
-                  isOwn
+            <div
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              onContextMenu={(e) => { e.preventDefault(); setActionMenuOpen(true); }}
+              className={cn(
+                "select-none flex w-fit flex-col gap-2 cursor-default",
+                !bare && "px-3.5 py-2.5",
+                !bare && "rounded-2xl",
+                // Tail: last bubble gets one squared-off corner pointing to the sender
+                !bare && isLast && isOwn && "rounded-br-[4px]",
+                !bare && isLast && !isOwn && "rounded-bl-[4px]",
+                !bare &&
+                  (isOwn
                     ? "bg-bubble-sent text-bubble-sent-foreground"
-                    : "bg-bubble-received text-bubble-received-foreground"
-                )}
-              >
-                <textarea
-                  autoFocus
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
-                    if (e.key === "Escape") handleEditCancel();
-                  }}
-                  rows={2}
-                  className="w-full resize-none bg-transparent text-sm outline-none"
-                />
-                <div className="flex items-center gap-2 justify-end">
-                  <button type="button" onClick={handleEditCancel} className="text-xs opacity-60 hover:opacity-100">Cancel</button>
-                  <button type="button" onClick={handleEditSave} className="rounded px-2 py-0.5 text-xs font-semibold bg-primary/20 hover:bg-primary/30">Save</button>
-                </div>
-              </div>
-            ) : (
-              <div
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                onContextMenu={(e) => { e.preventDefault(); setActionMenuOpen(true); }}
-                className={cn(
-                  "select-none flex flex-col gap-2 cursor-default",
-                  !bare && "rounded-(--radius-lg) px-3.5 py-2.5",
-                  !bare &&
-                    (isOwn
-                      ? "bg-bubble-sent text-bubble-sent-foreground"
-                      : "bg-bubble-received text-bubble-received-foreground")
-                )}
-              >
-                <BubbleContent message={message} isOwn={isOwn} />
-              </div>
-            )}
+                    : "bg-bubble-received text-bubble-received-foreground")
+              )}
+            >
+              <BubbleContent message={message} isOwn={isOwn} />
+            </div>
           </PopoverTrigger>
 
           <PopoverContent

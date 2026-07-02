@@ -114,6 +114,7 @@ export const useConversationRequestStore = create<PingState>()((set, get) => ({
       type: "ping",
       title: fromUser?.name ?? "Someone",
       body: `@${fromUser?.username ?? "someone"} pinged you`,
+      actionId: ping.id,
     });
   },
 }));

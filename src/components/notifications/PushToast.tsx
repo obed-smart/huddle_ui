@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { X } from "@/components/ui/icons";
 import { TYPE_ICON, TYPE_COLOR } from "./NotificationItem";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
+import { useConversationRequestStore } from "@/store/useConversationRequestStore";
 import { useUIStore } from "@/store/useUIStore";
 import type { NotificationItem as NotificationItemType } from "@/types";
 
@@ -16,7 +17,10 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
   const dismissToast = useNotificationsStore((s) => s.dismissToast);
   const markRead = useNotificationsStore((s) => s.markRead);
   const openModal = useUIStore((s) => s.openModal);
+  const acceptPing = useConversationRequestStore((s) => s.acceptPing);
+  const declinePing = useConversationRequestStore((s) => s.declinePing);
   const Icon = TYPE_ICON[notification.type];
+  const isPingWithAction = notification.type === "ping" && !!notification.actionId;
 
   useEffect(() => {
     const timer = setTimeout(() => dismissToast(notification.id), AUTO_DISMISS_MS);
@@ -35,37 +39,72 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
     }
   }
 
+  function handleAccept() {
+    if (!notification.actionId) return;
+    const conversationId = acceptPing(notification.actionId);
+    markRead(notification.id);
+    dismissToast(notification.id);
+    if (conversationId) router.push(`/chat/${conversationId}`);
+  }
+
+  function handleDecline() {
+    if (!notification.actionId) return;
+    declinePing(notification.actionId);
+    markRead(notification.id);
+    dismissToast(notification.id);
+  }
+
   return (
     <div
       role="alert"
-      className="pointer-events-auto flex w-full items-start gap-3 rounded-(--radius-lg) border border-border bg-surface p-3.5 shadow-(--shadow-lg) animate-(--animate-slide-up)"
+      className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-(--radius-lg) border border-border bg-surface p-3.5 shadow-(--shadow-lg) animate-(--animate-slide-up)"
     >
-      <button
-        type="button"
-        onClick={handleClick}
-        className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none"
-      >
-        <span
-          className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full [&_svg]:size-4",
-            TYPE_COLOR[notification.type]
-          )}
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          onClick={handleClick}
+          className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none"
         >
-          <Icon />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-foreground">{notification.title}</span>
-          <span className="block truncate text-xs text-muted-foreground">{notification.body}</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={() => dismissToast(notification.id)}
-        aria-label="Dismiss notification"
-        className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <X className="size-3.5" />
-      </button>
+          <span
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-full [&_svg]:size-4",
+              TYPE_COLOR[notification.type]
+            )}
+          >
+            <Icon />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-foreground">{notification.title}</span>
+            <span className="block truncate text-xs text-muted-foreground">{notification.body}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => dismissToast(notification.id)}
+          aria-label="Dismiss notification"
+          className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
+      {isPingWithAction && (
+        <div className="flex gap-2 pl-12">
+          <button
+            type="button"
+            onClick={handleAccept}
+            className="flex-1 rounded-(--radius-md) bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Accept
+          </button>
+          <button
+            type="button"
+            onClick={handleDecline}
+            className="flex-1 rounded-(--radius-md) border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Decline
+          </button>
+        </div>
+      )}
     </div>
   );
 }
