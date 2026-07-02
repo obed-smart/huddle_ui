@@ -24,6 +24,7 @@ import { useCallStore } from "@/store/useCallStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useMeetStore } from "@/store/useMeetStore";
 import { usePresence } from "@/store/usePresenceStore";
+import { toast } from "sonner";
 import type { Conversation } from "@/types";
 
 interface ChatHeaderProps {
@@ -36,7 +37,9 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const togglePin = useChatStore((s) => s.togglePin);
   const addMeetMessage = useChatStore((s) => s.addMeetMessage);
   const startCall = useCallStore((s) => s.startCall);
+  const activeCall = useCallStore((s) => s.activeCall);
   const startMeet = useMeetStore((s) => s.startMeet);
+  const activeMeet = useMeetStore((s) => s.activeMeet);
 
   const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
   const otherStatus = usePresence(otherId);
@@ -46,11 +49,19 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const memberNames = getConversationMemberNames(conversation);
 
   function handleCall(type: "audio" | "video") {
+    if (activeCall || activeMeet) {
+      toast.error("End your current call first");
+      return;
+    }
     startCall(conversation.id, conversation.participantIds, type);
     router.push(`/call/${conversation.id}`);
   }
 
   function handleMeet() {
+    if (activeCall || activeMeet) {
+      toast.error("End your current call first");
+      return;
+    }
     const meetId = startMeet(
       name,
       conversation.participantIds.map((userId) => ({

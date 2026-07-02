@@ -7,16 +7,24 @@ import { Search } from "@/components/ui/icons";
 import { useChatStore } from "@/store/useChatStore";
 import { getConversationName } from "@/lib/conversation-utils";
 
+export type ChatFilter = "all" | "unread" | "groups";
+
 interface ConversationListProps {
   query: string;
+  filter?: ChatFilter;
 }
 
-export function ConversationList({ query }: ConversationListProps) {
+export function ConversationList({ query, filter = "all" }: ConversationListProps) {
   const router = useRouter();
-  const { conversations, activeConversationId, setActiveConversation, getLastMessage } = useChatStore();
+  const { conversations, activeConversationId, setActiveConversation, getLastMessage, getUnreadCount } = useChatStore();
 
   const filtered = conversations
-    .filter((c) => getConversationName(c).toLowerCase().includes(query.trim().toLowerCase()))
+    .filter((c) => {
+      if (!getConversationName(c).toLowerCase().includes(query.trim().toLowerCase())) return false;
+      if (filter === "groups") return c.type === "group";
+      if (filter === "unread") return getUnreadCount(c.id) > 0;
+      return true;
+    })
     .sort((a, b) => {
       if (Boolean(a.pinned) !== Boolean(b.pinned)) return a.pinned ? -1 : 1;
       const aTime = getLastMessage(a.id)?.createdAt ?? "";

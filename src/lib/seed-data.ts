@@ -16,6 +16,7 @@ export const seedUsers: User[] = [
     status: "online",
     bio: "Product designer, coffee enthusiast",
     about: "Building thoughtful tools for fast-moving teams. Based in São Paulo.",
+    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
   },
   {
     id: "u-jakob",
@@ -23,6 +24,7 @@ export const seedUsers: User[] = [
     username: "jakobs",
     email: "jakob@huddle.app",
     status: "online",
+    avatarUrl: "https://randomuser.me/api/portraits/men/45.jpg",
   },
   {
     id: "u-gustavo",
@@ -30,6 +32,7 @@ export const seedUsers: User[] = [
     username: "gustavod",
     email: "gustavo@huddle.app",
     status: "away",
+    avatarUrl: "https://randomuser.me/api/portraits/men/22.jpg",
   },
   {
     id: "u-jaydon",
@@ -37,6 +40,7 @@ export const seedUsers: User[] = [
     username: "jaydong",
     email: "jaydon@huddle.app",
     status: "online",
+    avatarUrl: "https://randomuser.me/api/portraits/men/11.jpg",
   },
   {
     id: "u-hanna",
@@ -44,6 +48,7 @@ export const seedUsers: User[] = [
     username: "hannal",
     email: "hanna@huddle.app",
     status: "online",
+    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
   },
   {
     id: "u-skylar",
@@ -51,6 +56,7 @@ export const seedUsers: User[] = [
     username: "skylarv",
     email: "skylar@huddle.app",
     status: "offline",
+    avatarUrl: "https://randomuser.me/api/portraits/women/28.jpg",
   },
   {
     id: "u-katie",
@@ -58,6 +64,7 @@ export const seedUsers: User[] = [
     username: "katiemizu",
     email: "katie@huddle.app",
     status: "online",
+    avatarUrl: "https://randomuser.me/api/portraits/women/17.jpg",
   },
   {
     id: "u-sophia",
@@ -65,6 +72,7 @@ export const seedUsers: User[] = [
     username: "sophiac",
     email: "sophia@huddle.app",
     status: "away",
+    avatarUrl: "https://randomuser.me/api/portraits/women/63.jpg",
   },
   {
     id: "u-marcus",
@@ -73,6 +81,7 @@ export const seedUsers: User[] = [
     email: "marcus@huddle.app",
     status: "online",
     bio: "Full-stack engineer. Open-source contributor.",
+    avatarUrl: "https://randomuser.me/api/portraits/men/54.jpg",
   },
   {
     id: "u-lena",
@@ -81,6 +90,7 @@ export const seedUsers: User[] = [
     email: "lena@huddle.app",
     status: "online",
     bio: "UX researcher & accessibility advocate",
+    avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg",
   },
   {
     id: "u-rafael",
@@ -89,6 +99,7 @@ export const seedUsers: User[] = [
     email: "rafael@huddle.app",
     status: "away",
     bio: "Motion designer, coffee and music lover",
+    avatarUrl: "https://randomuser.me/api/portraits/men/67.jpg",
   },
   {
     id: "u-priya",
@@ -97,6 +108,7 @@ export const seedUsers: User[] = [
     email: "priya@huddle.app",
     status: "online",
     bio: "PM building 0→1 products",
+    avatarUrl: "https://randomuser.me/api/portraits/women/37.jpg",
   },
 ];
 

@@ -51,7 +51,7 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-center gap-1">
             {conversation.pinned && <Pin className="size-3 shrink-0 text-muted-foreground" />}
-            <span className="truncate font-medium text-foreground">{name}</span>
+            <span className="truncate font-semibold text-foreground">{name}</span>
           </span>
           {lastMessage && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
