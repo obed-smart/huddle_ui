@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { GroupAvatar } from "@/components/ui/group-avatar";
@@ -12,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, MoreVertical, Phone, Pin, PinOff, Users, Video } from "@/components/ui/icons";
-import { GroupInfoPanel } from "./GroupInfoPanel";
 import {
   getConversationMemberNames,
   getConversationName,
@@ -33,7 +31,6 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ conversation }: ChatHeaderProps) {
   const router = useRouter();
-  const [infoOpen, setInfoOpen] = useState(false);
   const togglePin = useChatStore((s) => s.togglePin);
   const addMeetMessage = useChatStore((s) => s.addMeetMessage);
   const startCall = useCallStore((s) => s.startCall);
@@ -85,7 +82,7 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
       {conversation.type === "group" ? (
         <button
           type="button"
-          onClick={() => setInfoOpen(true)}
+          onClick={() => router.push(`/chat/${conversation.id}/settings`)}
           className="flex min-w-0 flex-1 items-center gap-3 rounded-(--radius-md) text-left transition-opacity hover:opacity-80"
         >
           <GroupAvatar names={memberNames} size="sm" />
@@ -152,9 +149,6 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {conversation.type === "group" && (
-        <GroupInfoPanel conversation={conversation} open={infoOpen} onOpenChange={setInfoOpen} />
-      )}
     </header>
   );
 }

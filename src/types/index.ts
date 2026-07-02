@@ -15,15 +15,19 @@ export interface User {
 
 export type ConversationType = "dm" | "group";
 
+export type GroupMemberRole = "owner" | "admin" | "member";
+
 export interface Conversation {
   id: string;
   type: ConversationType;
   name?: string;
+  description?: string;
   participantIds: string[];
   avatarUrl?: string;
   pinned?: boolean;
   isPrivate?: boolean;
   inviteCode?: string;
+  memberRoles?: Record<string, GroupMemberRole>;
 }
 
 export type AttachmentType = "image" | "file" | "voice";

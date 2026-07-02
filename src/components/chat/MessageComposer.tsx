@@ -355,25 +355,52 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           </DropdownMenu>
         )}
 
-        {/* Camera — only in empty state */}
-        {!isRecording && !hasText && !hasPendingImages && (
+        {/* Camera — collapses smoothly when typing starts */}
+        <div
+          className={cn(
+            "shrink-0 overflow-hidden transition-all duration-200",
+            !isRecording && !hasText && !hasPendingImages
+              ? "w-10 opacity-100"
+              : "pointer-events-none w-0 opacity-0"
+          )}
+        >
           <IconButton label="Camera" onClick={() => cameraInputRef.current?.click()}>
             <Camera />
           </IconButton>
-        )}
+        </div>
 
+        {/* Right action — mic / send crossfade */}
         {isRecording ? (
           <IconButton label="Send voice message" variant="primary" onClick={stopRecording} className="shrink-0">
             <StopCircle />
           </IconButton>
-        ) : hasText || hasPendingImages ? (
-          <IconButton label="Send message" variant="primary" onClick={handleSend}>
-            <SendHorizontal />
-          </IconButton>
         ) : (
-          <IconButton label="Record voice message" variant="primary" onClick={startRecording}>
-            <Mic />
-          </IconButton>
+          <div className="relative shrink-0">
+            <div
+              className={cn(
+                "transition-all duration-150",
+                hasText || hasPendingImages
+                  ? "scale-100 opacity-100"
+                  : "pointer-events-none absolute inset-0 scale-90 opacity-0"
+              )}
+            >
+              <IconButton label="Send message" variant="primary" onClick={handleSend}>
+                <SendHorizontal />
+              </IconButton>
+            </div>
+            <div
+              className={cn(
+                "transition-all duration-150",
+                hasText || hasPendingImages
+                  ? "pointer-events-none absolute inset-0 scale-90 opacity-0"
+                  : "scale-100 opacity-100"
+              )}
+            >
+              <IconButton label="Record voice message" variant="primary" onClick={startRecording}>
+                <Mic />
+              </IconButton>
+            </div>
+          </div>
         )}
       </div>
     </div>

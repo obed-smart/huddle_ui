@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Attachment, CallEvent, Conversation, MeetEvent, Message, MessageReplyRef } from "@/types";
+import type { Attachment, CallEvent, Conversation, GroupMemberRole, MeetEvent, Message, MessageReplyRef } from "@/types";
 import {
   CURRENT_USER_ID,
   seedConversations,
@@ -29,6 +29,11 @@ interface ChatState {
   sendVoiceMessage: (conversationId: string, durationSeconds: number) => void;
   addMemberToConversation: (conversationId: string, userId: string) => void;
   getConversationByInviteCode: (code: string) => Conversation | undefined;
+  setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
+  updateGroupName: (conversationId: string, name: string) => void;
+  updateGroupDescription: (conversationId: string, description: string) => void;
+  toggleGroupPrivacy: (conversationId: string) => void;
+  updateMemberRole: (conversationId: string, userId: string, role: GroupMemberRole) => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -253,6 +258,46 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       (c) => c.inviteCode?.toLowerCase() === code.toLowerCase()
     );
   },
+
+  setTyping: (conversationId, userId, isTyping) =>
+    set((state) => ({
+      typingUsers: {
+        ...state.typingUsers,
+        [conversationId]: isTyping
+          ? [...(state.typingUsers[conversationId] ?? []).filter((id) => id !== userId), userId]
+          : (state.typingUsers[conversationId] ?? []).filter((id) => id !== userId),
+      },
+    })),
+
+  updateGroupName: (conversationId, name) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId ? { ...c, name } : c
+      ),
+    })),
+
+  updateGroupDescription: (conversationId, description) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId ? { ...c, description } : c
+      ),
+    })),
+
+  toggleGroupPrivacy: (conversationId) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId ? { ...c, isPrivate: !c.isPrivate } : c
+      ),
+    })),
+
+  updateMemberRole: (conversationId, userId, role) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId
+          ? { ...c, memberRoles: { ...(c.memberRoles ?? {}), [userId]: role } }
+          : c
+      ),
+    })),
 
   editMessage: (conversationId, messageId, text) => {
     if (!text.trim()) return;
