@@ -47,6 +47,12 @@ export interface MeetEvent {
   durationSeconds?: number;
 }
 
+export interface MessageReplyRef {
+  messageId: string;
+  senderId: string;
+  text?: string;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -56,6 +62,8 @@ export interface Message {
   call?: CallEvent;
   meet?: MeetEvent;
   reactions?: Record<string, string[]>;
+  replyTo?: MessageReplyRef;
+  edited?: boolean;
   createdAt: string;
   status: MessageStatus;
 }

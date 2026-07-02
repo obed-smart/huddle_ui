@@ -10,7 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Camera, ImageIcon, Mic, Paperclip, SendHorizontal, Share2, StopCircle, X } from "@/components/ui/icons";
+import { Camera, ImageIcon, Mic, Paperclip, Reply, SendHorizontal, Share2, StopCircle, X } from "@/components/ui/icons";
+import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/useChatStore";
 
@@ -46,6 +47,8 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   const sendMessage = useChatStore((s) => s.sendMessage);
   const sendAttachment = useChatStore((s) => s.sendAttachment);
   const sendVoiceMessage = useChatStore((s) => s.sendVoiceMessage);
+  const replyingTo = useChatStore((s) => s.replyingTo);
+  const setReplyingTo = useChatStore((s) => s.setReplyingTo);
 
   const hasText = text.trim().length > 0;
   const hasPendingImages = pendingImages.length > 0;
@@ -265,6 +268,31 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           ))}
         </div>
       )}
+
+      {/* Reply banner */}
+      {replyingTo?.conversationId === conversationId && (() => {
+        const sender = getUserById(replyingTo.message.senderId);
+        const name = replyingTo.message.senderId === CURRENT_USER_ID ? "You" : (sender?.name ?? "Unknown");
+        return (
+          <div className="flex items-center gap-3 border-t border-border bg-surface-hover px-4 py-2">
+            <Reply className="size-4 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-primary">{name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {replyingTo.message.text ?? "Attachment"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReplyingTo(null)}
+              aria-label="Cancel reply"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Input row */}
       <div className="flex items-end gap-2 px-4 py-3 md:px-6">

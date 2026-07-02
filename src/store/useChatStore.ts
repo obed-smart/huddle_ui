@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Attachment, CallEvent, Conversation, MeetEvent, Message } from "@/types";
+import type { Attachment, CallEvent, Conversation, MeetEvent, Message, MessageReplyRef } from "@/types";
 import {
   CURRENT_USER_ID,
   seedConversations,
@@ -11,8 +11,11 @@ interface ChatState {
   messagesByConversation: Record<string, Message[]>;
   activeConversationId: string | null;
   typingUsers: Record<string, string[]>;
+  replyingTo: { conversationId: string; message: Message } | null;
   setActiveConversation: (id: string | null) => void;
+  setReplyingTo: (info: { conversationId: string; message: Message } | null) => void;
   sendMessage: (conversationId: string, text: string) => void;
+  editMessage: (conversationId: string, messageId: string, text: string) => void;
   sendAttachment: (conversationId: string, file: File) => void;
   togglePin: (conversationId: string) => void;
   markRead: (conversationId: string) => void;
@@ -35,14 +38,21 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   typingUsers: {
     "c-katie": [],
   },
+  replyingTo: null,
 
   setActiveConversation: (id) => {
     set({ activeConversationId: id });
     if (id) get().markRead(id);
   },
 
+  setReplyingTo: (info) => set({ replyingTo: info }),
+
   sendMessage: (conversationId, text) => {
     if (!text.trim()) return;
+    const state = get();
+    const replyRef = state.replyingTo?.conversationId === conversationId
+      ? ({ messageId: state.replyingTo.message.id, senderId: state.replyingTo.message.senderId, text: state.replyingTo.message.text } satisfies MessageReplyRef)
+      : undefined;
     const message: Message = {
       id: `m-${Date.now()}`,
       conversationId,
@@ -50,9 +60,11 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       text: text.trim(),
       createdAt: new Date().toISOString(),
       status: "sent",
+      replyTo: replyRef,
     };
 
     set((state) => ({
+      replyingTo: null,
       messagesByConversation: {
         ...state.messagesByConversation,
         [conversationId]: [
@@ -240,5 +252,17 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     return get().conversations.find(
       (c) => c.inviteCode?.toLowerCase() === code.toLowerCase()
     );
+  },
+
+  editMessage: (conversationId, messageId, text) => {
+    if (!text.trim()) return;
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: (state.messagesByConversation[conversationId] ?? []).map((m) =>
+          m.id === messageId ? { ...m, text: text.trim(), edited: true } : m
+        ),
+      },
+    }));
   },
 }));
