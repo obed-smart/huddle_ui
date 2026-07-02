@@ -12,6 +12,9 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Folder, MessageSquare, Users, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useMeetStore } from "@/store/useMeetStore";
+import { getUserById, CURRENT_USER_ID } from "@/lib/seed-data";
+
+const DEV_REACTION_EMOJIS = ["👍", "❤️", "🎉", "😂", "🔥", "👏"];
 
 const TABS = [
   { id: "participants", label: "Participants", icon: Users },
@@ -75,6 +78,9 @@ export function MeetOverlay() {
   const rightPanelTab = useMeetStore((s) => s.rightPanelTab);
   const openRightPanel = useMeetStore((s) => s.openRightPanel);
   const closeRightPanel = useMeetStore((s) => s.closeRightPanel);
+  const meetReactions = useMeetStore((s) => s.meetReactions);
+  const addMeetReaction = useMeetStore((s) => s.addMeetReaction);
+  const devSimulateReaction = useMeetStore((s) => s.devSimulateReaction);
 
   if (!activeMeet) return null;
 
@@ -102,6 +108,54 @@ export function MeetOverlay() {
             />
           </div>
         )}
+      </div>
+
+      {/* Floating reaction bubbles */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        {meetReactions.map((reaction) => {
+          const user = getUserById(reaction.userId);
+          return (
+            <div
+              key={reaction.id}
+              className={cn(
+                "absolute bottom-36 flex flex-col items-center gap-1",
+                reaction.exiting
+                  ? "animate-(--animate-reaction-exit)"
+                  : "animate-(--animate-reaction-rise)"
+              )}
+              style={{ left: `calc(50% + ${reaction.offset}px)`, transform: "translateX(-50%)" }}
+            >
+              <span className="text-4xl drop-shadow-md">{reaction.emoji}</span>
+              {user && (
+                <span className="rounded-full bg-surface/80 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-sm backdrop-blur-sm">
+                  {reaction.userId === CURRENT_USER_ID ? "You" : user.name}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Dev reaction strip + simulate button */}
+      <div className="flex shrink-0 items-center justify-center gap-2 pb-1 pt-2">
+        {DEV_REACTION_EMOJIS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => addMeetReaction(emoji, CURRENT_USER_ID)}
+            className="flex size-9 items-center justify-center rounded-full bg-surface text-xl shadow-sm transition-transform hover:scale-110 active:scale-95"
+            aria-label={`React with ${emoji}`}
+          >
+            {emoji}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={devSimulateReaction}
+          className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-primary shadow-sm transition-colors hover:bg-secondary/80"
+        >
+          Sim reaction
+        </button>
       </div>
 
       {/* Mobile: Sheet overlay */}

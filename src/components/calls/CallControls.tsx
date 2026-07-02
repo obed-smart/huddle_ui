@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { IconButton } from "@/components/ui/icon-button";
-import { Mic, MicOff, PhoneOff, Video, VideoOff } from "@/components/ui/icons";
+import { Loader2, Mic, MicOff, PhoneOff, Video, VideoOff } from "@/components/ui/icons";
 import { useCallStore } from "@/store/useCallStore";
 
 interface CallControlsProps {
@@ -13,6 +13,7 @@ export function CallControls({ conversationId }: CallControlsProps) {
   const router = useRouter();
   const isMuted = useCallStore((s) => s.isMuted);
   const isCameraOff = useCallStore((s) => s.isCameraOff);
+  const isVideoPending = useCallStore((s) => s.isVideoPending);
   const toggleMute = useCallStore((s) => s.toggleMute);
   const toggleCamera = useCallStore((s) => s.toggleCamera);
   const endCall = useCallStore((s) => s.endCall);
@@ -29,12 +30,13 @@ export function CallControls({ conversationId }: CallControlsProps) {
           {isMuted ? <MicOff /> : <Mic />}
         </IconButton>
         <IconButton
-          label={isCameraOff ? "Turn camera on" : "Turn camera off"}
+          label={isVideoPending ? "Connecting camera…" : isCameraOff ? "Turn camera on" : "Turn camera off"}
           variant="filled"
           size="lg"
           onClick={toggleCamera}
+          disabled={isVideoPending}
         >
-          {isCameraOff ? <VideoOff /> : <Video />}
+          {isVideoPending ? <Loader2 className="animate-spin" /> : isCameraOff ? <VideoOff /> : <Video />}
         </IconButton>
         <div className="mx-1 h-8 w-px bg-border" />
         <IconButton label="End call" variant="destructive" size="lg" onClick={handleEnd}>

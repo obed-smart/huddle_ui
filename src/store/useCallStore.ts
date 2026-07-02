@@ -11,6 +11,7 @@ interface CallState {
   incomingCall: CallSession | null;
   isMuted: boolean;
   isCameraOff: boolean;
+  isVideoPending: boolean;
   startCall: (conversationId: string, participantIds: string[], type: CallType) => void;
   simulateIncomingCall: (conversationId: string, participantIds: string[], type: CallType) => void;
   acceptCall: () => void;
@@ -18,6 +19,7 @@ interface CallState {
   endCall: () => void;
   toggleMute: () => void;
   toggleCamera: () => void;
+  devAddParticipant: () => void;
 }
 
 export const useCallStore = create<CallState>()((set, get) => {
@@ -58,6 +60,7 @@ export const useCallStore = create<CallState>()((set, get) => {
     incomingCall: null,
     isMuted: false,
     isCameraOff: false,
+    isVideoPending: false,
 
     startCall: (conversationId, participantIds, type) => {
       const callId = `call-${Date.now()}`;
@@ -139,17 +142,57 @@ export const useCallStore = create<CallState>()((set, get) => {
           : state.activeCall,
       })),
 
-    toggleCamera: () =>
-      set((state) => ({
-        isCameraOff: !state.isCameraOff,
-        activeCall: state.activeCall
-          ? {
-              ...state.activeCall,
-              participants: state.activeCall.participants.map((p) =>
-                p.userId === CURRENT_USER_ID ? { ...p, cameraOff: !p.cameraOff } : p
-              ),
-            }
-          : state.activeCall,
-      })),
+    toggleCamera: () => {
+      const state = get();
+      // Turning camera ON from OFF gets a 2s pending state to simulate negotiation
+      if (state.isCameraOff) {
+        set({ isVideoPending: true });
+        setTimeout(() => {
+          set((s) => ({
+            isVideoPending: false,
+            isCameraOff: false,
+            activeCall: s.activeCall
+              ? {
+                  ...s.activeCall,
+                  participants: s.activeCall.participants.map((p) =>
+                    p.userId === CURRENT_USER_ID ? { ...p, cameraOff: false } : p
+                  ),
+                }
+              : s.activeCall,
+          }));
+        }, 2000);
+      } else {
+        set((s) => ({
+          isCameraOff: true,
+          activeCall: s.activeCall
+            ? {
+                ...s.activeCall,
+                participants: s.activeCall.participants.map((p) =>
+                  p.userId === CURRENT_USER_ID ? { ...p, cameraOff: true } : p
+                ),
+              }
+            : s.activeCall,
+        }));
+      }
+    },
+
+    devAddParticipant: () => {
+      const DEV_USERS = ["u-jakob", "u-gustavo", "u-jaydon", "u-hanna", "u-skylar"];
+      set((state) => {
+        if (!state.activeCall) return state;
+        const existing = new Set(state.activeCall.participants.map((p) => p.userId));
+        const next = DEV_USERS.find((id) => !existing.has(id));
+        if (!next) return state;
+        return {
+          activeCall: {
+            ...state.activeCall,
+            participants: [
+              ...state.activeCall.participants,
+              { userId: next, muted: false, cameraOff: false },
+            ],
+          },
+        };
+      });
+    },
   };
 });

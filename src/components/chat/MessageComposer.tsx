@@ -49,6 +49,9 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   const sendVoiceMessage = useChatStore((s) => s.sendVoiceMessage);
   const replyingTo = useChatStore((s) => s.replyingTo);
   const setReplyingTo = useChatStore((s) => s.setReplyingTo);
+  const setTyping = useChatStore((s) => s.setTyping);
+
+  const devTypingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasText = text.trim().length > 0;
   const hasPendingImages = pendingImages.length > 0;
@@ -62,8 +65,18 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
       pendingUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       if (p2pTimerRef.current) clearInterval(p2pTimerRef.current);
+      if (devTypingTimerRef.current) clearTimeout(devTypingTimerRef.current);
     };
   }, []);
+
+  function handleDevSimulateTyping() {
+    const MOCK_USER = "u-jakob";
+    setTyping(conversationId, MOCK_USER, true);
+    if (devTypingTimerRef.current) clearTimeout(devTypingTimerRef.current);
+    devTypingTimerRef.current = setTimeout(() => {
+      setTyping(conversationId, MOCK_USER, false);
+    }, 5000);
+  }
 
   function resize(el: HTMLTextAreaElement) {
     el.style.height = "auto";
@@ -268,6 +281,17 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           ))}
         </div>
       )}
+
+      {/* Dev: simulate typing indicator trigger */}
+      <div className="flex justify-end px-4 pb-0.5 pt-1.5">
+        <button
+          type="button"
+          onClick={handleDevSimulateTyping}
+          className="rounded-full bg-secondary/60 px-2.5 py-1 text-[11px] font-medium text-primary/70 transition-colors hover:bg-secondary hover:text-primary"
+        >
+          Sim typing
+        </button>
+      </div>
 
       {/* Reply banner */}
       {replyingTo?.conversationId === conversationId && (() => {
