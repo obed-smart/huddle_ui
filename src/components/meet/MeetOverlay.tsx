@@ -123,7 +123,7 @@ export function MeetOverlay() {
                   ? "animate-(--animate-reaction-exit)"
                   : "animate-(--animate-reaction-rise)"
               )}
-              style={{ left: `calc(50% + ${reaction.offset}px)`, transform: "translateX(-50%)" }}
+              style={{ left: `${84 + reaction.offset}px` }}
             >
               <span className="text-4xl drop-shadow-md">{reaction.emoji}</span>
               {user && (

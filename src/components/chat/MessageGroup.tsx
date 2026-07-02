@@ -27,8 +27,8 @@ export function MessageGroup({ messages, conversation }: MessageGroupProps) {
         {showSenderMeta && (
           <span className="px-1 text-xs font-medium text-muted-foreground">{sender?.name}</span>
         )}
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} isOwn={isOwn} />
+        {messages.map((message, index) => (
+          <MessageBubble key={message.id} message={message} isOwn={isOwn} isLast={index === messages.length - 1} />
         ))}
       </div>
     </div>

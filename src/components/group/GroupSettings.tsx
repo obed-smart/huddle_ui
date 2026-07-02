@@ -16,6 +16,7 @@ import {
   Plus,
   ShieldCheck,
 } from "@/components/ui/icons";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { getInviteUrl } from "@/lib/group-utils";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,16 @@ function MemberRow({
           <ShieldCheck className="size-2.5" />
           Admin
         </span>
+      )}
+      {currentUserRole === "owner" && !isSelf && role === "admin" && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => updateMemberRole(conversationId, userId, "member")}
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          Remove admin
+        </Button>
       )}
       {!isSelf && role === "member" && relation === "none" && (
         <Button size="sm" variant="ghost" onClick={() => sendPing(userId)}>
@@ -246,11 +257,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Privacy
               </p>
-              <button
-                type="button"
-                onClick={() => toggleGroupPrivacy(conversation.id)}
-                className="flex w-full items-center gap-4 rounded-(--radius-md) border border-border p-4 text-left transition-colors hover:bg-surface-hover"
-              >
+              <div className="flex items-center gap-4">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
                   {conversation.isPrivate ? (
                     <Lock className="size-5" />
@@ -264,11 +271,16 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {conversation.isPrivate
-                      ? "Only invited members can join — tap to make public"
-                      : "Anyone with the link can join — tap to make private"}
+                      ? "Only invited members can join"
+                      : "Anyone with the link can join"}
                   </p>
                 </div>
-              </button>
+                <ToggleSwitch
+                  checked={conversation.isPrivate ?? false}
+                  onCheckedChange={() => toggleGroupPrivacy(conversation.id)}
+                  label={conversation.isPrivate ? "Make public" : "Make private"}
+                />
+              </div>
             </div>
             <div className="mx-6 border-t border-border" />
           </>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ActiveCallBar } from "@/components/calls/ActiveCallBar";
+import { ActiveMeetBar } from "@/components/calls/ActiveMeetBar";
 import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
 import { ChatSidebar } from "@/components/sidebar/ChatSidebar";
 import { ConversationRequestsModal } from "@/components/sidebar/ConversationRequestsModal";
@@ -40,6 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex h-dvh flex-col">
       <ActiveCallBar />
+      <ActiveMeetBar />
       <div className="flex flex-1 overflow-hidden">
         <div
           className={cn(

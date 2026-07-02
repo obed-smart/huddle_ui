@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Camera, ImageIcon, Mic, Paperclip, Reply, SendHorizontal, Share2, StopCircle, X } from "@/components/ui/icons";
+import { Camera, ImageIcon, Mic, Paperclip, Pencil, Reply, SendHorizontal, Share2, StopCircle, X } from "@/components/ui/icons";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/store/useChatStore";
@@ -47,9 +47,14 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   const sendMessage = useChatStore((s) => s.sendMessage);
   const sendAttachment = useChatStore((s) => s.sendAttachment);
   const sendVoiceMessage = useChatStore((s) => s.sendVoiceMessage);
+  const editMessage = useChatStore((s) => s.editMessage);
   const replyingTo = useChatStore((s) => s.replyingTo);
   const setReplyingTo = useChatStore((s) => s.setReplyingTo);
+  const editingMessage = useChatStore((s) => s.editingMessage);
+  const setEditingMessage = useChatStore((s) => s.setEditingMessage);
   const setTyping = useChatStore((s) => s.setTyping);
+
+  const isEditing = editingMessage?.conversationId === conversationId;
 
   const devTypingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,6 +73,18 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
       if (devTypingTimerRef.current) clearTimeout(devTypingTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (editingMessage?.conversationId === conversationId) {
+      setText(editingMessage.message.text ?? "");
+      setTimeout(() => {
+        if (textareaRef.current) {
+          resize(textareaRef.current);
+          textareaRef.current.focus();
+        }
+      }, 0);
+    }
+  }, [editingMessage, conversationId]);
 
   function handleDevSimulateTyping() {
     const MOCK_USER = "u-jakob";
@@ -90,6 +107,14 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   }
 
   function handleSend() {
+    if (isEditing) {
+      if (!text.trim()) return;
+      editMessage(conversationId, editingMessage!.message.id, text);
+      setEditingMessage(null);
+      setText("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      return;
+    }
     if (!text.trim() && pendingImages.length === 0) return;
     for (const file of pendingImages) {
       sendAttachment(conversationId, file);
@@ -292,6 +317,27 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
           Sim typing
         </button>
       </div>
+
+      {/* Edit banner */}
+      {isEditing && (
+        <div className="flex items-center gap-3 border-t border-border bg-amber-50 px-4 py-2 dark:bg-amber-950/30">
+          <Pencil className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Editing message</p>
+            <p className="truncate text-xs text-amber-600/80 dark:text-amber-500/80">
+              {editingMessage!.message.text}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setEditingMessage(null); setText(""); if (textareaRef.current) textareaRef.current.style.height = "auto"; }}
+            aria-label="Cancel edit"
+            className="shrink-0 text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       {/* Reply banner */}
       {replyingTo?.conversationId === conversationId && (() => {
