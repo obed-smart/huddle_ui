@@ -1,26 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { MeetOverlay } from "@/components/meet/MeetOverlay";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Video } from "@/components/ui/icons";
 import { useMeetStore } from "@/store/useMeetStore";
 
 export default function MeetSessionPage() {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const activeMeet = useMeetStore((s) => s.activeMeet);
 
-  if (activeMeet) return <MeetOverlay />;
+  useEffect(() => {
+    if (!activeMeet) {
+      router.replace(`/chat/${id}`);
+    }
+  }, [activeMeet, id, router]);
 
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-background p-6">
-      <EmptyState
-        icon={<Video />}
-        title="No active call"
-        description="This call has ended or hasn't started yet."
-        action={<Button onClick={() => router.push("/chat")}>Back to chats</Button>}
-      />
-    </div>
-  );
+  if (!activeMeet) return null;
+  return <MeetOverlay />;
 }

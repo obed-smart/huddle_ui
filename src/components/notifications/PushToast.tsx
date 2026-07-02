@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { X } from "@/components/ui/icons";
 import { TYPE_ICON, TYPE_COLOR } from "./NotificationItem";
@@ -11,6 +12,7 @@ import type { NotificationItem as NotificationItemType } from "@/types";
 const AUTO_DISMISS_MS = 5000;
 
 function PushToastCard({ notification }: { notification: NotificationItemType }) {
+  const router = useRouter();
   const dismissToast = useNotificationsStore((s) => s.dismissToast);
   const markRead = useNotificationsStore((s) => s.markRead);
   const openModal = useUIStore((s) => s.openModal);
@@ -24,7 +26,13 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
   function handleClick() {
     markRead(notification.id);
     dismissToast(notification.id);
-    openModal(notification.type === "ping" ? "pings" : "notifications");
+    if (notification.type === "ping") {
+      openModal("pings");
+    } else if (notification.conversationId) {
+      router.push(`/chat/${notification.conversationId}`);
+    } else {
+      openModal("notifications");
+    }
   }
 
   return (
