@@ -132,6 +132,7 @@ export interface NotificationItem {
   avatarUrl?: string;
   userId?: string;
   conversationId?: string;
+  actionId?: string; // references a Ping or GroupJoinRequest id for inline Accept/Decline
 }
 
 export type PingStatus = "pending" | "accepted" | "declined";
