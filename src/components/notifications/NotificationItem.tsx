@@ -14,7 +14,7 @@ export const TYPE_COLOR = {
   message: "bg-secondary text-primary",
   call: "bg-destructive-muted text-rose-600",
   mention: "bg-warning-muted text-amber-600",
-  system: "bg-success-muted text-emerald-600",
+  system: "bg-secondary text-primary",
   ping: "bg-secondary text-primary",
 } as const;
 
