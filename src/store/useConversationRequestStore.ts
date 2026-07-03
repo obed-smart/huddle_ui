@@ -1,9 +1,14 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import type { Conversation, Ping } from "@/types";
+import type { Conversation, GroupInvite, Ping } from "@/types";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { useChatStore } from "@/store/useChatStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
+
+const DEMO_GROUP_INVITES: Array<{ conversationId: string; groupName: string; fromUserId: string }> = [
+  { conversationId: "c-sim-weekend", groupName: "Weekend Plans", fromUserId: "u-jakob" },
+  { conversationId: "c-sim-reading", groupName: "Book Club 📚", fromUserId: "u-hanna" },
+];
 
 export type SendPingResult =
   | { status: "existing"; conversationId: string }
@@ -12,11 +17,15 @@ export type SendPingResult =
 
 interface PingState {
   pings: Ping[];
+  groupInvites: GroupInvite[];
   sendPing: (userId: string) => SendPingResult;
   resolveOutgoingPing: (pingId: string) => void;
   acceptPing: (pingId: string) => string | undefined;
   declinePing: (pingId: string) => void;
   simulateIncomingPing: (fromUserId: string) => void;
+  simulateGroupInvite: () => void;
+  acceptGroupInvite: (inviteId: string) => string | undefined;
+  declineGroupInvite: (inviteId: string) => void;
 }
 
 function buildDmConversation(userId: string): Conversation {
@@ -34,6 +43,7 @@ function findPendingBetween(pings: Ping[], userId: string) {
 
 export const useConversationRequestStore = create<PingState>()((set, get) => ({
   pings: [],
+  groupInvites: [],
 
   sendPing: (userId) => {
     const existing = useChatStore
@@ -117,6 +127,70 @@ export const useConversationRequestStore = create<PingState>()((set, get) => ({
       actionId: ping.id,
     });
   },
+  simulateGroupInvite: () => {
+    const existing = get().groupInvites;
+    const available = DEMO_GROUP_INVITES.filter(
+      (d) =>
+        !existing.some((gi) => gi.conversationId === d.conversationId) &&
+        !useChatStore.getState().conversations.some((c) => c.id === d.conversationId)
+    );
+    if (available.length === 0) return;
+
+    const demo = available[Math.floor(Math.random() * available.length)];
+    const invite: GroupInvite = {
+      id: `gi-${Date.now()}`,
+      conversationId: demo.conversationId,
+      groupName: demo.groupName,
+      fromUserId: demo.fromUserId,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    set((state) => ({ groupInvites: [invite, ...state.groupInvites] }));
+
+    const fromUser = getUserById(demo.fromUserId);
+    useNotificationsStore.getState().addNotification({
+      type: "system",
+      title: fromUser?.name ?? "Someone",
+      body: `Invited you to join ${demo.groupName}`,
+      actionId: invite.id,
+    });
+  },
+
+  acceptGroupInvite: (inviteId) => {
+    const invite = get().groupInvites.find((gi) => gi.id === inviteId);
+    if (!invite || invite.status !== "pending") return undefined;
+
+    set((state) => ({
+      groupInvites: state.groupInvites.map((gi) =>
+        gi.id === inviteId ? { ...gi, status: "accepted" } : gi
+      ),
+    }));
+
+    const conversation: Conversation = {
+      id: invite.conversationId,
+      type: "group",
+      name: invite.groupName,
+      participantIds: [invite.fromUserId, CURRENT_USER_ID],
+      memberRoles: { [invite.fromUserId]: "owner" },
+    };
+    useChatStore.getState().addConversation(conversation);
+    const fromUser = getUserById(invite.fromUserId);
+    useChatStore.getState().addSystemMessage(
+      invite.conversationId,
+      `@${getUserById(CURRENT_USER_ID)?.username ?? "you"} has just joined`
+    );
+    // Also post a welcome message from the inviter
+    void fromUser;
+    return invite.conversationId;
+  },
+
+  declineGroupInvite: (inviteId) => {
+    set((state) => ({
+      groupInvites: state.groupInvites.map((gi) =>
+        gi.id === inviteId ? { ...gi, status: "declined" } : gi
+      ),
+    }));
+  },
 }));
 
 // ── Backwards-compatible aliases (so callers don't all need renaming at once) ──
@@ -133,4 +207,16 @@ export function usePendingIncomingRequests() {
   return useConversationRequestStore(
     useShallow((s) => s.pings.filter((r) => r.status === "pending" && r.toUserId === CURRENT_USER_ID))
   );
+}
+
+export function usePendingGroupInvites() {
+  return useConversationRequestStore(
+    useShallow((s) => s.groupInvites.filter((gi) => gi.status === "pending"))
+  );
+}
+
+export function useTotalPendingCount() {
+  const pings = usePendingIncomingRequests();
+  const invites = usePendingGroupInvites();
+  return pings.length + invites.length;
 }

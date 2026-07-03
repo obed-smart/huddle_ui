@@ -156,6 +156,15 @@ export interface GroupJoinRequest {
   createdAt: string;
 }
 
+export interface GroupInvite {
+  id: string;
+  conversationId: string;
+  groupName: string;
+  fromUserId: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+}
+
 export interface SharedFile {
   id: string;
   name: string;
