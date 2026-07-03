@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IconButton } from "@/components/ui/icon-button";
 import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft,
   Check,
   Copy,
@@ -109,46 +114,80 @@ function MemberRow({
   );
 }
 
-// ── Add from conversations ────────────────────────────────────────────────────
+// ── Invite member dialog ──────────────────────────────────────────────────────
 
-function AddMemberSection({ conversation }: { conversation: Conversation }) {
+function InviteMemberDialog({
+  conversation,
+  open,
+  onClose,
+}: {
+  conversation: Conversation;
+  open: boolean;
+  onClose: () => void;
+}) {
   const conversations = useChatStore((s) => s.conversations);
   const addMember = useChatStore((s) => s.addMemberToConversation);
+  const addSystemMessage = useChatStore((s) => s.addSystemMessage);
+  const [invitedIds, setInvitedIds] = useState<string[]>([]);
 
   const contacts = conversations
     .filter((c) => c.type === "dm")
     .map((c) => c.participantIds.find((id) => id !== CURRENT_USER_ID))
     .filter((id): id is string => !!id && !conversation.participantIds.includes(id));
 
-  if (contacts.length === 0) return null;
+  function handleInvite(userId: string) {
+    if (invitedIds.includes(userId)) return;
+    setInvitedIds((prev) => [...prev, userId]);
+
+    const user = getUserById(userId);
+    const delay = 3000 + Math.random() * 3000;
+    setTimeout(() => {
+      addMember(conversation.id, userId);
+      addSystemMessage(conversation.id, `@${user?.username ?? userId} has just joined`);
+    }, delay);
+  }
 
   return (
-    <div>
-      <p className="px-6 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Add from conversations
-      </p>
-      {contacts.map((userId) => {
-        const user = getUserById(userId);
-        if (!user) return null;
-        return (
-          <div key={userId} className="flex items-center gap-3 px-6 py-2.5">
-            <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => addMember(conversation.id, userId)}
-            >
-              <Plus className="size-3.5" />
-              Add
-            </Button>
-          </div>
-        );
-      })}
-    </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-h-[70vh] overflow-hidden flex flex-col gap-0 p-0">
+        <div className="px-6 pt-6 pb-4 border-b border-border">
+          <DialogTitle>Add member</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Invite someone from your conversations to join this group.
+          </p>
+        </div>
+        <div className="flex-1 overflow-y-auto py-2">
+          {contacts.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-muted-foreground">
+              No contacts available to add.
+            </p>
+          ) : (
+            contacts.map((userId) => {
+              const user = getUserById(userId);
+              if (!user) return null;
+              const invited = invitedIds.includes(userId);
+              return (
+                <div key={userId} className="flex items-center gap-3 px-6 py-2.5">
+                  <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
+                  </div>
+                  {invited ? (
+                    <span className="shrink-0 text-xs text-primary font-medium">Invited</span>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => handleInvite(userId)}>
+                      <Plus className="size-3.5" />
+                      Invite
+                    </Button>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -163,6 +202,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
   const [name, setName] = useState(conversation.name ?? "");
   const [description, setDescription] = useState(conversation.description ?? "");
   const [copied, setCopied] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const updateGroupName = useChatStore((s) => s.updateGroupName);
   const updateGroupDescription = useChatStore((s) => s.updateGroupDescription);
@@ -319,9 +359,21 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
         {/* Members */}
         <div className="py-2">
-          <p className="px-6 pb-2 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {conversation.participantIds.length} members
-          </p>
+          <div className="flex items-center justify-between px-6 pb-2 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {conversation.participantIds.length} members
+            </p>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setInviteOpen(true)}
+                className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Add member"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            )}
+          </div>
           {conversation.participantIds.map((userId) => {
             const role: GroupMemberRole =
               conversation.memberRoles?.[userId] ??
@@ -336,9 +388,15 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               />
             );
           })}
-
-          {canEdit && <AddMemberSection conversation={conversation} />}
         </div>
+
+        {canEdit && (
+          <InviteMemberDialog
+            conversation={conversation}
+            open={inviteOpen}
+            onClose={() => setInviteOpen(false)}
+          />
+        )}
 
       </div>
     </div>

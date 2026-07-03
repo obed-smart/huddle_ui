@@ -30,6 +30,7 @@ interface ChatState {
   toggleReaction: (conversationId: string, messageId: string, emoji: string, userId: string) => void;
   sendVoiceMessage: (conversationId: string, durationSeconds: number) => void;
   addMemberToConversation: (conversationId: string, userId: string) => void;
+  addSystemMessage: (conversationId: string, text: string) => void;
   getConversationByInviteCode: (code: string) => Conversation | undefined;
   setTyping: (conversationId: string, userId: string, isTyping: boolean) => void;
   updateGroupName: (conversationId: string, name: string) => void;
@@ -254,6 +255,24 @@ export const useChatStore = create<ChatState>()((set, get) => ({
           ? { ...c, participantIds: [...c.participantIds, userId] }
           : c
       ),
+    }));
+  },
+
+  addSystemMessage: (conversationId, text) => {
+    const message: Message = {
+      id: `m-sys-${Date.now()}`,
+      conversationId,
+      senderId: "system",
+      text,
+      isSystem: true,
+      createdAt: new Date().toISOString(),
+      status: "read",
+    };
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: [...(state.messagesByConversation[conversationId] ?? []), message],
+      },
     }));
   },
 

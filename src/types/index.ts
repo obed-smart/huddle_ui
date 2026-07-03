@@ -68,6 +68,7 @@ export interface Message {
   reactions?: Record<string, string[]>;
   replyTo?: MessageReplyRef;
   edited?: boolean;
+  isSystem?: boolean;
   createdAt: string;
   status: MessageStatus;
 }
