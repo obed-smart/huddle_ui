@@ -26,17 +26,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
   const isDetail = !SIDEBAR_ONLY_ROUTE.test(pathname);
 
-  usePresenceSimulator(hasHydrated && isAuthenticated);
-  useNotificationsSimulator(hasHydrated && isAuthenticated);
+  usePresenceSimulator(!isCheckingAuth && isAuthenticated);
+  useNotificationsSimulator(!isCheckingAuth && isAuthenticated);
 
   useEffect(() => {
-    if (hasHydrated && !isAuthenticated) router.replace("/login");
-  }, [hasHydrated, isAuthenticated, router]);
+    if (!isCheckingAuth && !isAuthenticated) router.replace("/login");
+  }, [isCheckingAuth, isAuthenticated, router]);
 
-  if (!hasHydrated || !isAuthenticated) return null;
+  if (isCheckingAuth || !isAuthenticated) return null;
 
   return (
     <div className="flex h-dvh flex-col">

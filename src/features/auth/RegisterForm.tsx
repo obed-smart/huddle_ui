@@ -24,9 +24,8 @@ export function RegisterForm() {
     if (useAuthStore.getState().isAuthenticated) router.push("/chat");
   }
 
-  async function handleGoogle() {
-    await loginWithGoogle();
-    router.push("/chat");
+  function handleGoogle() {
+    loginWithGoogle();
   }
 
   return (

@@ -48,6 +48,12 @@ export function getParticipantGridCols(count: number) {
   return "grid-cols-2 sm:grid-cols-3";
 }
 
+export function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  return "Something went wrong. Please try again.";
+}
+
 export function formatDayDivider(date: string | number | Date) {
   const d = new Date(date);
   const today = new Date();

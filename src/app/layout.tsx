@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
+import { AuthBootstrap } from "@/components/providers/AuthBootstrap";
 import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background font-sans text-foreground">
         <QueryProvider>
+          <AuthBootstrap />
           {children}
           <Toaster
             position="top-center"

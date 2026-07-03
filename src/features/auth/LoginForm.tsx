@@ -17,13 +17,12 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await login(identifier, password);
+    await login({ identifier, password });
     if (useAuthStore.getState().isAuthenticated) router.push("/chat");
   }
 
-  async function handleGoogle() {
-    await loginWithGoogle();
-    router.push("/chat");
+  function handleGoogle() {
+    loginWithGoogle();
   }
 
   return (
