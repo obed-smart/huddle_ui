@@ -35,7 +35,7 @@ export const useMeetStore = create<MeetState>()((set) => ({
   activeMeet: null,
   isMuted: false,
   isCameraOff: false,
-  isRightPanelOpen: true,
+  isRightPanelOpen: false,
   rightPanelTab: "participants",
   meetReactions: [],
 

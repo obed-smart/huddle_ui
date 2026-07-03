@@ -2,6 +2,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { CallEventRow } from "./CallEventRow";
 import { MeetEventRow } from "./MeetEventRow";
 import { MessageBubble } from "./MessageBubble";
+import { SystemEventRow } from "./SystemEventRow";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { cn } from "@/lib/utils";
 import type { Conversation, Message } from "@/types";
@@ -15,6 +16,7 @@ export function MessageGroup({ messages, conversation }: MessageGroupProps) {
   const first = messages[0];
   if (messages.length === 1 && first.call) return <CallEventRow message={first} />;
   if (messages.length === 1 && first.meet) return <MeetEventRow message={first} />;
+  if (messages.length === 1 && first.isSystem) return <SystemEventRow message={first} />;
 
   const isOwn = first.senderId === CURRENT_USER_ID;
   const sender = getUserById(first.senderId);
@@ -24,11 +26,14 @@ export function MessageGroup({ messages, conversation }: MessageGroupProps) {
     <div className={cn("flex items-end gap-2.5", isOwn && "flex-row-reverse")}>
       {showSenderMeta && <Avatar name={sender?.name ?? "Unknown"} size="sm" />}
       <div className={cn("flex max-w-[78%] flex-col gap-1", isOwn ? "items-end" : "items-start")}>
-        {showSenderMeta && (
-          <span className="px-1 text-xs font-medium text-muted-foreground">{sender?.name}</span>
-        )}
         {messages.map((message, index) => (
-          <MessageBubble key={message.id} message={message} isOwn={isOwn} isLast={index === messages.length - 1} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isOwn={isOwn}
+            isLast={index === messages.length - 1}
+            senderName={showSenderMeta && index === 0 ? (sender?.name ?? undefined) : undefined}
+          />
         ))}
       </div>
     </div>

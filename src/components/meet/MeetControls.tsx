@@ -13,6 +13,7 @@ import {
   Video,
   VideoOff,
 } from "@/components/ui/icons";
+import { CURRENT_USER_ID } from "@/lib/seed-data";
 import { useChatStore } from "@/store/useChatStore";
 import { useMeetStore } from "@/store/useMeetStore";
 
@@ -22,6 +23,9 @@ export function MeetControls() {
   const isCameraOff = useMeetStore((s) => s.isCameraOff);
   const isSharing = useMeetStore((s) => s.activeMeet?.isScreenSharing ?? false);
   const isRightPanelOpen = useMeetStore((s) => s.isRightPanelOpen);
+  const isHandRaised = useMeetStore(
+    (s) => s.activeMeet?.participants.find((p) => p.userId === CURRENT_USER_ID)?.handRaised ?? false
+  );
   const toggleMute = useMeetStore((s) => s.toggleMute);
   const toggleCamera = useMeetStore((s) => s.toggleCamera);
   const toggleScreenShare = useMeetStore((s) => s.toggleScreenShare);
@@ -65,7 +69,7 @@ export function MeetControls() {
         >
           {isSharing ? <ScreenShareOff /> : <ScreenShare />}
         </IconButton>
-        <IconButton label="Raise hand" variant="filled" size="lg" onClick={toggleHandRaised}>
+        <IconButton label={isHandRaised ? "Lower hand" : "Raise hand"} variant={isHandRaised ? "primary" : "filled"} size="lg" onClick={toggleHandRaised}>
           <Hand />
         </IconButton>
         <IconButton

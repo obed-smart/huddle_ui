@@ -81,6 +81,7 @@ export function MeetOverlay() {
   const meetReactions = useMeetStore((s) => s.meetReactions);
   const addMeetReaction = useMeetStore((s) => s.addMeetReaction);
   const devSimulateReaction = useMeetStore((s) => s.devSimulateReaction);
+  const pinParticipant = useMeetStore((s) => s.pinParticipant);
 
   if (!activeMeet) return null;
 
@@ -93,7 +94,7 @@ export function MeetOverlay() {
           {activeMeet.isScreenSharing ? (
             <ScreenShareView meet={activeMeet} />
           ) : (
-            <MeetGrid participants={activeMeet.participants} pinnedUserId={activeMeet.pinnedUserId} />
+            <MeetGrid participants={activeMeet.participants} pinnedUserId={activeMeet.pinnedUserId} onPinParticipant={pinParticipant} />
           )}
         </div>
 

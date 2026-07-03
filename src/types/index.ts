@@ -68,6 +68,7 @@ export interface Message {
   reactions?: Record<string, string[]>;
   replyTo?: MessageReplyRef;
   edited?: boolean;
+  isSystem?: boolean;
   createdAt: string;
   status: MessageStatus;
 }
@@ -152,6 +153,15 @@ export interface GroupJoinRequest {
   conversationId: string;
   fromUserId: string;
   status: GroupJoinRequestStatus;
+  createdAt: string;
+}
+
+export interface GroupInvite {
+  id: string;
+  conversationId: string;
+  groupName: string;
+  fromUserId: string;
+  status: "pending" | "accepted" | "declined";
   createdAt: string;
 }
 

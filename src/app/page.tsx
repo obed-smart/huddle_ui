@@ -8,13 +8,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 export default function Home() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
 
   useEffect(() => {
-    if (hasHydrated && isAuthenticated) router.replace("/chat");
-  }, [hasHydrated, isAuthenticated, router]);
+    if (!isCheckingAuth && isAuthenticated) router.replace("/chat");
+  }, [isCheckingAuth, isAuthenticated, router]);
 
-  if (!hasHydrated || isAuthenticated) {
+  if (isCheckingAuth || isAuthenticated) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
         <div className="flex size-12 items-center justify-center rounded-(--radius-md) bg-primary font-heading text-lg font-bold text-primary-foreground">

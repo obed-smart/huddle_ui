@@ -12,14 +12,14 @@ import { Link2, SquarePen, UserPlus, Users } from "@/components/ui/icons";
 import { RequestsButton } from "./RequestsButton";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
-import { usePendingIncomingRequests } from "@/store/useConversationRequestStore";
+import { useTotalPendingCount } from "@/store/useConversationRequestStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export function SidebarHeader() {
   const openModal = useUIStore((s) => s.openModal);
   const activeModal = useUIStore((s) => s.activeModal);
-  const incoming = usePendingIncomingRequests();
+  const totalPending = useTotalPendingCount();
   const user = useAuthStore((s) => s.user);
   const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
 
@@ -39,7 +39,7 @@ export function SidebarHeader() {
         />
       </button>
       <div className="flex items-center gap-1">
-        <RequestsButton count={incoming.length} onClick={() => openModal("pings")} />
+        <RequestsButton count={totalPending} onClick={() => openModal("pings")} />
         {/* Bell hidden on mobile — Alerts tab in bottom nav handles notifications there */}
         <span className="hidden md:block">
           <NotificationBell
