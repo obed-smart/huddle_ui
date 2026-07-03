@@ -8,11 +8,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 export default function AuthRouteLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
 
   useEffect(() => {
-    if (hasHydrated && isAuthenticated) router.replace("/chat");
-  }, [hasHydrated, isAuthenticated, router]);
+    if (!isCheckingAuth && isAuthenticated) router.replace("/chat");
+  }, [isCheckingAuth, isAuthenticated, router]);
 
   return <AuthLayout>{children}</AuthLayout>;
 }

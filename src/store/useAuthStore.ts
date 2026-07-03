@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { authService } from "@/services/authService";
 import type { PresenceStatus, User } from "@/types";
-import { CURRENT_USER_ID, seedUsers } from "@/lib/seed-data";
+import type { LoginDto, RegisterDto } from "@/lib/schema.validation";
+import { getErrorMessage } from "@/lib/utils";
 
 interface AuthState {
   user: User | null;
@@ -9,18 +10,12 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   needsUsername: boolean;
-  hasHydrated: boolean;
-  setHasHydrated: (value: boolean) => void;
-  login: (identifier: string, password: string) => Promise<void>;
-  register: (payload: {
-    firstName: string;
-    lastName: string;
-    username: string;
-    email: string;
-    password: string;
-  }) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => void;
+  isCheckingAuth: boolean;
+  getCurrentUser: () => Promise<void>;
+  login: (data: LoginDto) => Promise<void>;
+  register: (data: RegisterDto) => Promise<void>;
+  loginWithGoogle: () => void;
+  logout: () => Promise<void>;
   setUsername: (username: string) => void;
   setStatus: (status: PresenceStatus) => void;
   updateProfile: (patch: Partial<Pick<User, "name" | "username" | "bio" | "about" | "avatarUrl">>) => void;
@@ -28,105 +23,72 @@ interface AuthState {
   clearError: () => void;
 }
 
-const SIMULATED_DELAY = 600;
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+  needsUsername: false,
+  isCheckingAuth: true,
 
-function generateUsername(name: string) {
-  const base = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const suffix = Math.floor(1000 + Math.random() * 9000);
-  return `${base}${suffix}`;
-}
-
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-      needsUsername: false,
-      hasHydrated: false,
-      setHasHydrated: (value) => set({ hasHydrated: value }),
-
-      login: async (identifier, password) => {
-        set({ isLoading: true, error: null });
-        await wait(SIMULATED_DELAY);
-
-        if (!password || password.length < 4) {
-          set({
-            isLoading: false,
-            error: "Enter a valid password (min. 4 characters).",
-          });
-          return;
-        }
-
-        const match =
-          seedUsers.find(
-            (u) =>
-              u.email.toLowerCase() === identifier.toLowerCase() ||
-              u.username.toLowerCase() === identifier.toLowerCase()
-          ) ?? seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
-
-        set({ user: match, isAuthenticated: true, isLoading: false });
-      },
-
-      register: async ({ firstName, lastName, username, email }) => {
-        set({ isLoading: true, error: null });
-        await wait(SIMULATED_DELAY);
-
-        const trimmedUsername = username.trim().replace(/^@/, "");
-        const taken = seedUsers.some((u) => u.username.toLowerCase() === trimmedUsername.toLowerCase());
-        if (taken) {
-          set({ isLoading: false, error: "That username is already taken." });
-          return;
-        }
-
-        const newUser: User = {
-          id: `u-${Date.now()}`,
-          name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          username: trimmedUsername,
-          email,
-          status: "online",
-        };
-
-        set({ user: newUser, isAuthenticated: true, isLoading: false });
-      },
-
-      loginWithGoogle: async () => {
-        set({ isLoading: true, error: null });
-        await wait(SIMULATED_DELAY);
-        const current = seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
-        const googleUser: User = { ...current, username: generateUsername(current.name) };
-        set({ user: googleUser, isAuthenticated: true, isLoading: false, needsUsername: true });
-      },
-
-      logout: () => set({ user: null, isAuthenticated: false }),
-
-      setUsername: (username) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, username } : state.user,
-          needsUsername: false,
-        })),
-
-      setStatus: (status) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, status } : state.user,
-        })),
-
-      updateProfile: (patch) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...patch } : state.user,
-        })),
-
-      dismissUsernamePrompt: () => set({ needsUsername: false }),
-
-      clearError: () => set({ error: null }),
-    }),
-    {
-      name: "huddle-auth",
-      onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
+  getCurrentUser: async () => {
+    try {
+      const user = await authService.me();
+      set({ user, isAuthenticated: true, isCheckingAuth: false });
+    } catch {
+      set({ user: null, isAuthenticated: false, isCheckingAuth: false });
     }
-  )
-);
+  },
+
+  login: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const user = await authService.login(data);
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false, error: getErrorMessage(err) });
+    }
+  },
+
+  register: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const user = await authService.register(data);
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false, error: getErrorMessage(err) });
+    }
+  },
+
+  loginWithGoogle: () => {
+    authService.loginWithGoogle();
+  },
+
+  logout: async () => {
+    try {
+      await authService.logout();
+    } finally {
+      set({ user: null, isAuthenticated: false });
+    }
+  },
+
+  setUsername: (username) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, username } : state.user,
+      needsUsername: false,
+    })),
+
+  setStatus: (status) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, status } : state.user,
+    })),
+
+  updateProfile: (patch) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...patch } : state.user,
+    })),
+
+  dismissUsernamePrompt: () => set({ needsUsername: false }),
+
+  clearError: () => set({ error: null }),
+}));
