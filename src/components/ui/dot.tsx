@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 import type { PresenceStatus } from "@/types";
 
-const STATUS_CLASSES: Record<PresenceStatus | "typing" | "busy", string> = {
+const STATUS_CLASSES: Record<PresenceStatus | "typing", string> = {
   online: "bg-presence-online",
   away: "bg-presence-away",
+  busy: "bg-destructive",
   offline: "bg-presence-offline",
   typing: "bg-primary",
-  busy: "bg-destructive",
 };
 
 const SIZE_CLASSES = {
@@ -16,7 +16,7 @@ const SIZE_CLASSES = {
 } as const;
 
 interface DotProps {
-  status: PresenceStatus | "typing" | "busy";
+  status: PresenceStatus | "typing";
   size?: keyof typeof SIZE_CLASSES;
   className?: string;
 }

@@ -14,7 +14,7 @@ export function MeetParticipantList({ participants }: MeetParticipantListProps) 
   const isHost = participants.find((p) => p.userId === CURRENT_USER_ID)?.role === "host";
 
   return (
-    <div className="divide-y divide-white/5">
+    <div className="divide-y divide-border">
       {participants.map((participant) => (
         <ParticipantRow
           key={participant.userId}

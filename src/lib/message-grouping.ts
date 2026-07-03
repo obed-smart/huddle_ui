@@ -19,13 +19,23 @@ export function groupMessagesByDay(messages: Message[]): DaySegment[] {
       segments.push(segment);
     }
 
+    if (message.call || message.meet) {
+      segment.groups.push([message]);
+      continue;
+    }
+
     const lastGroup = segment.groups[segment.groups.length - 1];
     const lastMessage = lastGroup?.[lastGroup.length - 1];
     const elapsed = lastMessage
       ? new Date(message.createdAt).getTime() - new Date(lastMessage.createdAt).getTime()
       : Infinity;
 
-    if (lastMessage?.senderId === message.senderId && elapsed < GROUP_GAP_MS) {
+    if (
+      !lastMessage?.call &&
+      !lastMessage?.meet &&
+      lastMessage?.senderId === message.senderId &&
+      elapsed < GROUP_GAP_MS
+    ) {
       lastGroup.push(message);
     } else {
       segment.groups.push([message]);

@@ -30,12 +30,12 @@ export function DropZone({ onFiles }: DropZoneProps) {
       role="button"
       tabIndex={0}
       className={cn(
-        "flex cursor-pointer flex-col items-center gap-2 rounded-(--radius-md) border border-dashed border-white/15 p-5 text-center transition-colors",
-        isDragging ? "border-primary bg-primary/10" : "hover:border-white/30"
+        "flex cursor-pointer flex-col items-center gap-2 rounded-(--radius-md) border border-dashed border-border p-5 text-center transition-colors",
+        isDragging ? "border-primary bg-primary/10" : "hover:border-primary/40"
       )}
     >
-      <UploadCloud className="size-6 text-slate-400" />
-      <p className="text-xs text-slate-400">Drag files here or click to upload</p>
+      <UploadCloud className="size-6 text-muted-foreground" />
+      <p className="text-xs text-muted-foreground">Drag files here or click to upload</p>
       <input
         ref={inputRef}
         type="file"

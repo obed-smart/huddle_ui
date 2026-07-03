@@ -19,12 +19,12 @@ export function AuthCard({
 }: AuthCardProps) {
   return (
     <div className="w-full max-w-md animate-(--animate-slide-up) space-y-7">
-      <div className="flex items-center gap-2.5 lg:hidden">
+      <Link href="/" className="flex items-center gap-2.5 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-(--radius-sm)">
         <div className="flex size-9 items-center justify-center rounded-(--radius-sm) bg-primary font-heading text-lg font-bold text-primary-foreground">
           H
         </div>
         <span className="font-heading text-xl font-semibold text-foreground">Huddle</span>
-      </div>
+      </Link>
 
       <div className="space-y-1.5">
         <h1 className="font-heading text-2xl font-semibold text-foreground">{title}</h1>

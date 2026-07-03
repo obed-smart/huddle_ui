@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Search, UserPlus } from "@/components/ui/icons";
 import { UserResultCard } from "./UserResultCard";
 import { CURRENT_USER_ID, seedUsers } from "@/lib/seed-data";
-import { useChatStore } from "@/store/useChatStore";
+import { useConversationRequestStore } from "@/store/useConversationRequestStore";
 import { useUIStore } from "@/store/useUIStore";
 
 export function SearchUsersModal() {
@@ -16,12 +16,12 @@ export function SearchUsersModal() {
   const [query, setQuery] = useState("");
   const activeModal = useUIStore((s) => s.activeModal);
   const closeModal = useUIStore((s) => s.closeModal);
-  const startConversationWith = useChatStore((s) => s.startConversationWith);
+  const sendPing = useConversationRequestStore((s) => s.sendPing);
   const open = activeModal === "search-users";
 
-  const q = query.trim().toLowerCase();
+  const q = query.trim().toLowerCase().replace(/^@/, "");
   const results = seedUsers.filter(
-    (u) => u.id !== CURRENT_USER_ID && (!q || u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
+    (u) => u.id !== CURRENT_USER_ID && (!q || u.username.toLowerCase() === q)
   );
 
   function handleOpenChange(next: boolean) {
@@ -32,9 +32,11 @@ export function SearchUsersModal() {
   }
 
   function handleSelect(userId: string) {
-    const conversationId = startConversationWith(userId);
-    handleOpenChange(false);
-    router.push(`/chat/${conversationId}`);
+    const result = sendPing(userId);
+    if (result.status === "existing") {
+      handleOpenChange(false);
+      router.push(`/chat/${result.conversationId}`);
+    }
   }
 
   return (
@@ -42,7 +44,7 @@ export function SearchUsersModal() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Find people"
-      description="Search by name or @username to start a chat."
+      description="Search by exact @username to send a Ping."
     >
       <div className="space-y-3">
         <Input

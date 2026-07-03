@@ -9,7 +9,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-primary-foreground shadow-(--shadow-xs) hover:bg-primary-hover",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-indigo-200",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-violet-200",
         outline: "border border-border bg-surface text-foreground hover:bg-surface-hover",
         ghost: "text-foreground hover:bg-surface-hover",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive-hover",
@@ -46,17 +46,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         {...props}
       >
-        {loading && (
-          <svg
-            className="size-4 animate-spin motion-reduce:hidden"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-            <path className="opacity-90" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2Z" />
-          </svg>
+        {asChild ? (
+          children
+        ) : (
+          <>
+            {loading && (
+              <svg
+                className="size-4 animate-spin motion-reduce:hidden"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-90" fill="currentColor" d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2Z" />
+              </svg>
+            )}
+            {children}
+          </>
         )}
-        {children}
       </Comp>
     );
   }

@@ -39,7 +39,7 @@ export function IncomingCallModal() {
 
   function handleAccept() {
     acceptCall();
-    router.push(`/meet/${incomingCall!.conversationId}`);
+    router.push(`/call/${incomingCall!.conversationId}`);
   }
 
   return (

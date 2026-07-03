@@ -5,7 +5,7 @@ const showcaseUsers = seedUsers.slice(1, 5);
 
 function BrandPanel() {
   return (
-    <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 p-12 text-white lg:flex">
+    <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-violet-600 via-violet-500 to-purple-600 p-12 text-white lg:flex">
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -26,7 +26,7 @@ function BrandPanel() {
         <p className="font-heading text-3xl font-semibold leading-tight">
           Chat, call, and meet — all in one connected workspace.
         </p>
-        <p className="text-sm leading-relaxed text-indigo-100">
+        <p className="text-sm leading-relaxed text-violet-100">
           Seamless messaging, crystal-clear calls, and effortless team meetings.
           Built for fast-moving teams who value clarity over clutter.
         </p>
@@ -40,17 +40,17 @@ function BrandPanel() {
                 size="md"
                 presence={user.status === "online" ? "online" : undefined}
                 pulse
-                className="[&>span:first-child]:ring-indigo-500"
+                className="[&>span:first-child]:ring-violet-500"
               />
             ))}
           </div>
-          <p className="text-xs text-indigo-100">
+          <p className="text-xs text-violet-100">
             Joined by <span className="font-semibold text-white">2,400+</span> teams this month
           </p>
         </div>
       </div>
 
-      <p className="relative text-xs text-indigo-200">© {new Date().getFullYear()} Huddle. All rights reserved.</p>
+      <p className="relative text-xs text-violet-200">© {new Date().getFullYear()} Huddle. All rights reserved.</p>
     </div>
   );
 }

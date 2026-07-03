@@ -27,7 +27,7 @@ export function ComposerActions({ conversationId, onEmojiSelect }: ComposerActio
         <Paperclip />
       </IconButton>
       <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
-      <EmojiPicker onSelect={onEmojiSelect} />
+      <EmojiPicker onSelect={onEmojiSelect} onGifSelect={() => {}} />
     </div>
   );
 }

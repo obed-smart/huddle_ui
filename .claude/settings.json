@@ -1,0 +1,9 @@
+{
+  "skillOverrides": {
+    "run": "on",
+    "verify": "on",
+    "code-review": "on",
+    "simplify": "on",
+    "security-review": "on"
+  }
+}

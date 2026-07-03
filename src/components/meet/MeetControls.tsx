@@ -13,6 +13,8 @@ import {
   Video,
   VideoOff,
 } from "@/components/ui/icons";
+import { CURRENT_USER_ID } from "@/lib/seed-data";
+import { useChatStore } from "@/store/useChatStore";
 import { useMeetStore } from "@/store/useMeetStore";
 
 export function MeetControls() {
@@ -21,6 +23,9 @@ export function MeetControls() {
   const isCameraOff = useMeetStore((s) => s.isCameraOff);
   const isSharing = useMeetStore((s) => s.activeMeet?.isScreenSharing ?? false);
   const isRightPanelOpen = useMeetStore((s) => s.isRightPanelOpen);
+  const isHandRaised = useMeetStore(
+    (s) => s.activeMeet?.participants.find((p) => p.userId === CURRENT_USER_ID)?.handRaised ?? false
+  );
   const toggleMute = useMeetStore((s) => s.toggleMute);
   const toggleCamera = useMeetStore((s) => s.toggleCamera);
   const toggleScreenShare = useMeetStore((s) => s.toggleScreenShare);
@@ -30,45 +35,56 @@ export function MeetControls() {
   const endMeet = useMeetStore((s) => s.endMeet);
 
   function handleLeave() {
+    const meet = useMeetStore.getState().activeMeet;
+    const destination = meet && meet.conversationId !== "instant"
+      ? `/chat/${meet.conversationId}`
+      : "/chat";
+    if (meet) {
+      const durationSeconds = Math.floor((Date.now() - new Date(meet.startedAt).getTime()) / 1000);
+      useChatStore.getState().markMeetEnded(meet.conversationId, meet.id, durationSeconds);
+    }
     endMeet();
-    router.push("/meet");
+    router.push(destination);
   }
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-4 py-4 md:gap-3 md:py-6">
-      <IconButton label={isMuted ? "Unmute" : "Mute"} variant="ghostOnDark" size="lg" onClick={toggleMute}>
-        {isMuted ? <MicOff /> : <Mic />}
-      </IconButton>
-      <IconButton
-        label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-        variant="ghostOnDark"
-        size="lg"
-        onClick={toggleCamera}
-      >
-        {isCameraOff ? <VideoOff /> : <Video />}
-      </IconButton>
-      <IconButton
-        label={isSharing ? "Stop sharing" : "Share screen"}
-        variant="ghostOnDark"
-        size="lg"
-        onClick={toggleScreenShare}
-      >
-        {isSharing ? <ScreenShareOff /> : <ScreenShare />}
-      </IconButton>
-      <IconButton label="Raise hand" variant="ghostOnDark" size="lg" onClick={toggleHandRaised}>
-        <Hand />
-      </IconButton>
-      <IconButton
-        label={isRightPanelOpen ? "Hide panel" : "Show participants"}
-        variant="ghostOnDark"
-        size="lg"
-        onClick={() => (isRightPanelOpen ? closeRightPanel() : openRightPanel("participants"))}
-      >
-        <Users />
-      </IconButton>
-      <IconButton label="Leave meeting" variant="destructive" size="lg" onClick={handleLeave}>
-        <PhoneOff />
-      </IconButton>
+    <div className="flex shrink-0 justify-center px-4 pb-5 pt-3 md:pb-6">
+      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm md:gap-3">
+        <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
+          {isMuted ? <MicOff /> : <Mic />}
+        </IconButton>
+        <IconButton
+          label={isCameraOff ? "Turn camera on" : "Turn camera off"}
+          variant="filled"
+          size="lg"
+          onClick={toggleCamera}
+        >
+          {isCameraOff ? <VideoOff /> : <Video />}
+        </IconButton>
+        <IconButton
+          label={isSharing ? "Stop sharing" : "Share screen"}
+          variant={isSharing ? "primary" : "filled"}
+          size="lg"
+          onClick={toggleScreenShare}
+        >
+          {isSharing ? <ScreenShareOff /> : <ScreenShare />}
+        </IconButton>
+        <IconButton label={isHandRaised ? "Lower hand" : "Raise hand"} variant={isHandRaised ? "primary" : "filled"} size="lg" onClick={toggleHandRaised}>
+          <Hand />
+        </IconButton>
+        <IconButton
+          label={isRightPanelOpen ? "Hide panel" : "Show participants"}
+          variant={isRightPanelOpen ? "primary" : "filled"}
+          size="lg"
+          onClick={() => (isRightPanelOpen ? closeRightPanel() : openRightPanel("participants"))}
+        >
+          <Users />
+        </IconButton>
+        <div className="mx-1 h-8 w-px bg-border" />
+        <IconButton label="Leave meeting" variant="destructive" size="lg" onClick={handleLeave}>
+          <PhoneOff />
+        </IconButton>
+      </div>
     </div>
   );
 }

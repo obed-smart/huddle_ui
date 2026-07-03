@@ -5,6 +5,10 @@ export type ModalId =
   | "search-users"
   | "username-setup"
   | "notifications"
+  | "pings"
+  | "create-group"
+  | "join-group"
+  | "settings"
   | null;
 
 interface UIState {

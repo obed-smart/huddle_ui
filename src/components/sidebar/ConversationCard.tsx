@@ -4,10 +4,12 @@ import { Avatar } from "@/components/ui/avatar";
 import { GroupAvatar } from "@/components/ui/group-avatar";
 import { UnreadBadge } from "@/components/ui/badge";
 import { Pin } from "@/components/ui/icons";
+import { describeCallEvent } from "@/lib/call-events";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 import { getConversationMemberNames, getOtherParticipantIds } from "@/lib/conversation-utils";
 import { useChatStore } from "@/store/useChatStore";
+import { usePresence } from "@/store/usePresenceStore";
 import type { Conversation, Message } from "@/types";
 
 interface ConversationCardProps {
@@ -21,8 +23,9 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
   const unreadCount = useChatStore((s) => s.getUnreadCount(conversation.id));
   const typingUserIds = useChatStore((s) => s.typingUsers[conversation.id]) ?? [];
 
-  const otherId = getOtherParticipantIds(conversation)[0];
-  const otherUser = conversation.type === "dm" ? getUserById(otherId) : undefined;
+  const otherId = conversation.type === "dm" ? getOtherParticipantIds(conversation)[0] : undefined;
+  const otherUser = otherId ? getUserById(otherId) : undefined;
+  const otherStatus = usePresence(otherId);
   const memberNames = getConversationMemberNames(conversation);
   const name = conversation.type === "group" ? conversation.name ?? "Group chat" : otherUser?.name ?? "Unknown";
   const isTyping = typingUserIds.length > 0;
@@ -41,14 +44,14 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
       {conversation.type === "group" ? (
         <GroupAvatar names={memberNames} size="md" />
       ) : (
-        <Avatar name={name} size="md" presence={otherUser?.status} pulse />
+        <Avatar name={name} size="md" presence={otherStatus} pulse />
       )}
 
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-center gap-1">
             {conversation.pinned && <Pin className="size-3 shrink-0 text-muted-foreground" />}
-            <span className="truncate font-medium text-foreground">{name}</span>
+            <span className="truncate font-semibold text-foreground">{name}</span>
           </span>
           {lastMessage && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
@@ -77,6 +80,8 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
 }
 
 function buildPreview(conversation: Conversation, message: Message) {
+  if (message.call) return describeCallEvent(message.call);
+
   const isOwn = message.senderId === CURRENT_USER_ID;
   const senderLabel =
     conversation.type === "group"

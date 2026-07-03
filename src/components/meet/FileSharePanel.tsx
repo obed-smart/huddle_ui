@@ -29,8 +29,8 @@ export function FileSharePanel() {
       <div className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto">
         {files.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
-            <Folder className="size-6 text-slate-500" />
-            <p className="text-xs text-slate-400">No files shared yet</p>
+            <Folder className="size-6 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">No files shared yet</p>
           </div>
         ) : (
           files.map((file) => <FileItem key={file.id} file={file} />)
