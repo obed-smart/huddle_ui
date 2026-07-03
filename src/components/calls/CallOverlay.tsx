@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CallControls } from "./CallControls";
 import { OutgoingCallPanel } from "./OutgoingCallPanel";
 import { ParticipantTile } from "./ParticipantTile";
+import { PipCallLayout } from "./PipCallLayout";
 import { CallTimer } from "@/components/shared/CallTimer";
 import { IconButton } from "@/components/ui/icon-button";
 import { ArrowLeft, UserPlus } from "@/components/ui/icons";
@@ -57,7 +58,11 @@ export function CallOverlay({ conversationId }: CallOverlayProps) {
         )}
       </header>
 
-      {isLive ? (
+      {isLive && activeCall.participants.length === 2 ? (
+        // DM call: full-screen + draggable PiP
+        <PipCallLayout participants={activeCall.participants} />
+      ) : isLive ? (
+        // Group call: grid layout
         <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 md:p-8">
           <div className={cn("grid w-full max-w-4xl gap-4", gridCols)}>
             {activeCall.participants.map((participant) => (
