@@ -215,7 +215,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   }
 
   return (
-    <div className="flex shrink-0 flex-col border-t border-border">
+    <div className="flex shrink-0 flex-col border-t border-border/60 bg-background">
       {/* P2P dialog overlay */}
       {showP2P && (
         <div
@@ -364,113 +364,101 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
         );
       })()}
 
-      {/* Input row */}
-      <div className="flex items-end gap-2 px-4 py-3 md:px-6">
-        <EmojiPicker onSelect={handleEmojiSelect} onGifSelect={handleGifSelect} />
+      {/* Input row — pill style */}
+      <div className="flex items-end gap-2 px-3 py-2 md:px-4">
+        {/* Pill wrapper */}
+        <div className="flex flex-1 items-end gap-0.5 rounded-[26px] bg-surface shadow-sm ring-1 ring-border/60 px-1.5">
+          {/* Emoji picker */}
+          <EmojiPicker onSelect={handleEmojiSelect} onGifSelect={handleGifSelect} />
 
-        {isRecording ? (
-          <div className="flex min-h-11 flex-1 items-center gap-2.5 rounded-(--radius-md) border border-destructive/30 bg-destructive/5 px-3 py-2">
-            <span className="size-2.5 animate-pulse rounded-full bg-destructive" />
-            <span className="flex-1 text-sm font-medium tabular-nums text-destructive">
-              {formatRecordingTime(recordingSeconds)}
-            </span>
-            <button
-              type="button"
-              onClick={cancelRecording}
-              className="text-xs text-muted-foreground underline hover:text-foreground"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <ComposerInput
-            ref={textareaRef}
-            value={text}
-            placeholder={hasPendingImages ? "Add a caption…" : "Message"}
-            onChange={(e) => {
-              setText(e.target.value);
-              resize(e.target);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-          />
-        )}
-
-        {/* Attachment dropdown — hidden when recording or images pending */}
-        {!isRecording && !hasPendingImages && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <IconButton label="Attach">
-                <Paperclip />
-              </IconButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top">
-              <DropdownMenuItem
-                onSelect={() => setTimeout(() => setShowP2P(true), 50)}
+          {/* Text input or recording indicator */}
+          {isRecording ? (
+            <div className="flex flex-1 items-center gap-2 py-[11px] pl-1 pr-2">
+              <span className="size-2.5 animate-pulse rounded-full bg-destructive" />
+              <span className="flex-1 text-sm font-medium tabular-nums text-destructive">
+                {formatRecordingTime(recordingSeconds)}
+              </span>
+              <button
+                type="button"
+                onClick={cancelRecording}
+                className="text-xs text-muted-foreground underline hover:text-foreground"
               >
-                <Share2 className="size-4" />
-                Direct file share (P2P)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setTimeout(() => photosInputRef.current?.click(), 50)}
-              >
-                <ImageIcon className="size-4" />
-                Photos &amp; media
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {/* Camera — collapses smoothly when typing starts */}
-        <div
-          className={cn(
-            "shrink-0 overflow-hidden transition-all duration-200",
-            !isRecording && !hasText && !hasPendingImages
-              ? "w-10 opacity-100"
-              : "pointer-events-none w-0 opacity-0"
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <ComposerInput
+              ref={textareaRef}
+              value={text}
+              placeholder={hasPendingImages ? "Add a caption…" : "Message"}
+              onChange={(e) => {
+                setText(e.target.value);
+                resize(e.target);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+            />
           )}
-        >
-          <IconButton label="Camera" onClick={() => cameraInputRef.current?.click()}>
-            <Camera />
-          </IconButton>
+
+          {/* Attachment — inside pill */}
+          {!isRecording && !hasPendingImages && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <IconButton label="Attach" size="sm" variant="default">
+                  <Paperclip />
+                </IconButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top">
+                <DropdownMenuItem onSelect={() => setTimeout(() => setShowP2P(true), 50)}>
+                  <Share2 className="size-4" />
+                  Direct file share (P2P)
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setTimeout(() => photosInputRef.current?.click(), 50)}>
+                  <ImageIcon className="size-4" />
+                  Photos &amp; media
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Camera — collapses when typing */}
+          <div
+            className={cn(
+              "shrink-0 overflow-hidden transition-all duration-150",
+              !isRecording && !hasText && !hasPendingImages
+                ? "w-8 opacity-100"
+                : "pointer-events-none w-0 opacity-0"
+            )}
+          >
+            <IconButton label="Camera" size="sm" variant="default" onClick={() => cameraInputRef.current?.click()}>
+              <Camera />
+            </IconButton>
+          </div>
         </div>
 
-        {/* Right action — mic / send crossfade */}
+        {/* Send / Mic — circular, always visible outside pill */}
         {isRecording ? (
-          <IconButton label="Send voice message" variant="primary" onClick={stopRecording} className="shrink-0">
+          <IconButton
+            label="Send voice message"
+            variant="primary"
+            onClick={stopRecording}
+            className="mb-[3px] shrink-0 rounded-full"
+          >
             <StopCircle />
           </IconButton>
         ) : (
-          <div className="relative shrink-0">
-            <div
-              className={cn(
-                "transition-all duration-150",
-                hasText || hasPendingImages
-                  ? "scale-100 opacity-100"
-                  : "pointer-events-none absolute inset-0 scale-90 opacity-0"
-              )}
-            >
-              <IconButton label="Send message" variant="primary" onClick={handleSend}>
-                <SendHorizontal />
-              </IconButton>
-            </div>
-            <div
-              className={cn(
-                "transition-all duration-150",
-                hasText || hasPendingImages
-                  ? "pointer-events-none absolute inset-0 scale-90 opacity-0"
-                  : "scale-100 opacity-100"
-              )}
-            >
-              <IconButton label="Record voice message" variant="primary" onClick={startRecording}>
-                <Mic />
-              </IconButton>
-            </div>
-          </div>
+          <IconButton
+            label={hasText || hasPendingImages ? "Send message" : "Record voice message"}
+            variant="primary"
+            onClick={hasText || hasPendingImages ? handleSend : startRecording}
+            className="mb-[3px] shrink-0 rounded-full"
+          >
+            {hasText || hasPendingImages ? <SendHorizontal /> : <Mic />}
+          </IconButton>
         )}
       </div>
     </div>

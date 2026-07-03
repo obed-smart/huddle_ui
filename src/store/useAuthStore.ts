@@ -1,8 +1,16 @@
 import { create } from "zustand";
-import { authService } from "@/services/authService";
 import type { PresenceStatus, User } from "@/types";
 import type { LoginDto, RegisterDto } from "@/lib/schema.validation";
-import { getErrorMessage } from "@/lib/utils";
+import { CURRENT_USER_ID, seedUsers } from "@/lib/seed-data";
+
+const SIMULATED_DELAY = 600;
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function generateUsername(name: string) {
+  const base = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return `${base}${suffix}`;
+}
 
 interface AuthState {
   user: User | null;
@@ -31,45 +39,68 @@ export const useAuthStore = create<AuthState>()((set) => ({
   needsUsername: false,
   isCheckingAuth: true,
 
+  // Simulates a session check — resolves as unauthenticated in mock mode
   getCurrentUser: async () => {
-    try {
-      const user = await authService.me();
-      set({ user, isAuthenticated: true, isCheckingAuth: false });
-    } catch {
-      set({ user: null, isAuthenticated: false, isCheckingAuth: false });
-    }
+    await wait(400);
+    set({ isCheckingAuth: false });
   },
 
-  login: async (data) => {
+  login: async ({ identifier, password }) => {
     set({ isLoading: true, error: null });
-    try {
-      const user = await authService.login(data);
-      set({ user, isAuthenticated: true, isLoading: false });
-    } catch (err) {
-      set({ isLoading: false, error: getErrorMessage(err) });
+    await wait(SIMULATED_DELAY);
+
+    if (!password || password.length < 4) {
+      set({ isLoading: false, error: "Enter a valid password (min. 4 characters)." });
+      return;
     }
+
+    const match =
+      seedUsers.find(
+        (u) =>
+          u.email.toLowerCase() === identifier.toLowerCase() ||
+          u.username.toLowerCase() === identifier.toLowerCase()
+      ) ?? seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
+
+    set({ user: match, isAuthenticated: true, isLoading: false });
   },
 
-  register: async (data) => {
+  register: async ({ firstName, lastName, username, email }) => {
     set({ isLoading: true, error: null });
-    try {
-      const user = await authService.register(data);
-      set({ user, isAuthenticated: true, isLoading: false });
-    } catch (err) {
-      set({ isLoading: false, error: getErrorMessage(err) });
+    await wait(SIMULATED_DELAY);
+
+    const trimmedUsername = username.trim().replace(/^@/, "");
+    const taken = seedUsers.some((u) => u.username.toLowerCase() === trimmedUsername.toLowerCase());
+    if (taken) {
+      set({ isLoading: false, error: "That username is already taken." });
+      return;
     }
+
+    const newUser: User = {
+      id: `u-${Date.now()}`,
+      name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      username: trimmedUsername,
+      email,
+      status: "online",
+    };
+
+    set({ user: newUser, isAuthenticated: true, isLoading: false });
   },
 
+  // Simulates Google OAuth: shows loading immediately, resolves after delay via setTimeout
   loginWithGoogle: () => {
-    authService.loginWithGoogle();
+    set({ isLoading: true, error: null });
+    setTimeout(() => {
+      const current = seedUsers.find((u) => u.id === CURRENT_USER_ID)!;
+      const googleUser: User = { ...current, username: generateUsername(current.name) };
+      set({ user: googleUser, isAuthenticated: true, isLoading: false, needsUsername: true });
+    }, SIMULATED_DELAY);
   },
 
   logout: async () => {
-    try {
-      await authService.logout();
-    } finally {
-      set({ user: null, isAuthenticated: false });
-    }
+    await wait(300);
+    set({ user: null, isAuthenticated: false });
   },
 
   setUsername: (username) =>

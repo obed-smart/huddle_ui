@@ -8,7 +8,7 @@ export const ComposerInput = forwardRef<HTMLTextAreaElement, React.TextareaHTMLA
         ref={ref}
         rows={1}
         className={cn(
-          "max-h-32 min-h-11 flex-1 resize-none bg-transparent py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none",
+          "max-h-40 flex-1 resize-none bg-transparent py-[11px] text-sm leading-[1.4] text-foreground placeholder:text-muted-foreground focus-visible:outline-none",
           className
         )}
         {...props}
