@@ -24,11 +24,14 @@ export function MessageGroup({ messages, conversation }: MessageGroupProps) {
     <div className={cn("flex items-end gap-2.5", isOwn && "flex-row-reverse")}>
       {showSenderMeta && <Avatar name={sender?.name ?? "Unknown"} size="sm" />}
       <div className={cn("flex max-w-[78%] flex-col gap-1", isOwn ? "items-end" : "items-start")}>
-        {showSenderMeta && (
-          <span className="px-1 text-xs font-medium text-muted-foreground">{sender?.name}</span>
-        )}
         {messages.map((message, index) => (
-          <MessageBubble key={message.id} message={message} isOwn={isOwn} isLast={index === messages.length - 1} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isOwn={isOwn}
+            isLast={index === messages.length - 1}
+            senderName={showSenderMeta && index === 0 ? (sender?.name ?? undefined) : undefined}
+          />
         ))}
       </div>
     </div>

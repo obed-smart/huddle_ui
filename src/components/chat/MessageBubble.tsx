@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { BubbleContent } from "./BubbleContent";
 import { ReactionPicker } from "./ReactionPicker";
 import { ReactionPills } from "./ReactionPills";
-import { ReadReceipt } from "./ReadReceipt";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Copy, Pencil, Reply, Smile } from "@/components/ui/icons";
 import { CURRENT_USER_ID } from "@/lib/seed-data";
@@ -22,9 +21,10 @@ interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
   isLast?: boolean;
+  senderName?: string;
 }
 
-export function MessageBubble({ message, isOwn, isLast }: MessageBubbleProps) {
+export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBubbleProps) {
   const toggleReaction = useChatStore((s) => s.toggleReaction);
   const setReplyingTo = useChatStore((s) => s.setReplyingTo);
   const setEditingMessage = useChatStore((s) => s.setEditingMessage);
@@ -136,7 +136,7 @@ export function MessageBubble({ message, isOwn, isLast }: MessageBubbleProps) {
               onTouchEnd={onTouchEnd}
               onContextMenu={(e) => { e.preventDefault(); setActionMenuOpen(true); }}
               className={cn(
-                "select-none flex w-fit flex-col gap-2 cursor-default",
+                "select-none flex w-fit max-w-full min-w-0 overflow-hidden flex-col gap-2 cursor-default",
                 !bare && "px-3.5 py-2.5",
                 !bare && "rounded-2xl",
                 // Tail: last bubble gets one squared-off corner pointing to the sender
@@ -148,7 +148,7 @@ export function MessageBubble({ message, isOwn, isLast }: MessageBubbleProps) {
                     : "bg-bubble-received text-bubble-received-foreground")
               )}
             >
-              <BubbleContent message={message} isOwn={isOwn} />
+              <BubbleContent message={message} isOwn={isOwn} senderName={senderName} timestamp={formatTimestamp(message.createdAt)} />
             </div>
           </PopoverTrigger>
 
@@ -209,15 +209,6 @@ export function MessageBubble({ message, isOwn, isLast }: MessageBubbleProps) {
       {message.reactions && (
         <ReactionPills reactions={message.reactions} isOwn={isOwn} onToggle={handleReact} />
       )}
-      <div
-        className={cn(
-          "flex items-center gap-1 px-1 text-[11px] text-muted-foreground",
-          isOwn && "flex-row-reverse"
-        )}
-      >
-        <span>{formatTimestamp(message.createdAt)}</span>
-        {isOwn && <ReadReceipt status={message.status} />}
-      </div>
     </div>
   );
 }
