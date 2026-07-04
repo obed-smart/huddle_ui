@@ -13,7 +13,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { cn, formatTimestamp } from "@/lib/utils";
 import type { Message } from "@/types";
 
-const LONG_PRESS_MS = 450;
+const LONG_PRESS_MS = 600;
 const SWIPE_THRESHOLD = 64;
 const SWIPE_MAX = 80;
 const QUICK_EMOJIS = ["❤️", "😂", "👍", "😮", "😢", "🙏"];
@@ -35,6 +35,7 @@ export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBub
   const [showEmojiGrid, setShowEmojiGrid] = useState(false);
   const [emojiActiveId, setEmojiActiveId] = useState(EMOJI_CATEGORIES[0].id);
   const [bubbleRect, setBubbleRect] = useState<DOMRect | null>(null);
+  const [panelPos, setPanelPos] = useState<React.CSSProperties>({});
   const [swipeX, setSwipeX] = useState(0);
 
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -58,7 +59,15 @@ export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBub
 
   function openActionMenu() {
     if (bubbleRef.current) {
-      setBubbleRect(bubbleRef.current.getBoundingClientRect());
+      const rect = bubbleRef.current.getBoundingClientRect();
+      setBubbleRect(rect);
+      // Lock position at open time so it never jumps when toggling emoji grid
+      const vw = typeof window !== "undefined" ? window.innerWidth : 400;
+      const top = Math.max(8, rect.bottom + 8);
+      const xStyle: React.CSSProperties = isOwn
+        ? { right: Math.max(8, vw - rect.right) }
+        : { left: Math.min(rect.left, vw - PANEL_W - 8) };
+      setPanelPos({ top, ...xStyle });
     }
     setShowEmojiGrid(false);
     setEmojiActiveId(EMOJI_CATEGORIES[0].id);
@@ -120,18 +129,6 @@ export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBub
     setSwipeX(0);
     swipeStart.current = null;
     swipeTriggered.current = false;
-  }
-
-  function getPanelStyle(): React.CSSProperties {
-    if (!bubbleRect) return {};
-    const PANEL_H_EST = showEmojiGrid ? 330 : 200;
-    const vw = typeof window !== "undefined" ? window.innerWidth : 400;
-    const showAbove = bubbleRect.top > PANEL_H_EST + 16;
-    const panelTop = showAbove ? bubbleRect.top - PANEL_H_EST - 8 : bubbleRect.bottom + 8;
-    const xStyle: React.CSSProperties = isOwn
-      ? { right: Math.max(8, vw - bubbleRect.right) }
-      : { left: Math.min(bubbleRect.left, vw - PANEL_W - 8) };
-    return { top: Math.max(8, panelTop), ...xStyle };
   }
 
   const activeCategory = EMOJI_CATEGORIES.find((c) => c.id === emojiActiveId) ?? EMOJI_CATEGORIES[0];
@@ -198,7 +195,7 @@ export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBub
           {/* Action panel */}
           <div
             className="absolute z-[102] overflow-hidden rounded-2xl bg-surface shadow-2xl ring-1 ring-border/30"
-            style={{ width: PANEL_W, ...getPanelStyle() }}
+            style={{ width: PANEL_W, ...panelPos }}
             onClick={(e) => e.stopPropagation()}
           >
             {showEmojiGrid ? (

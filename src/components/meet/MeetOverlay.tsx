@@ -82,6 +82,7 @@ export function MeetOverlay() {
   const addMeetReaction = useMeetStore((s) => s.addMeetReaction);
   const devSimulateReaction = useMeetStore((s) => s.devSimulateReaction);
   const pinParticipant = useMeetStore((s) => s.pinParticipant);
+  const layoutMode = useMeetStore((s) => s.layoutMode);
 
   if (!activeMeet) return null;
 
@@ -94,7 +95,7 @@ export function MeetOverlay() {
           {activeMeet.isScreenSharing ? (
             <ScreenShareView meet={activeMeet} />
           ) : (
-            <MeetGrid participants={activeMeet.participants} pinnedUserId={activeMeet.pinnedUserId} onPinParticipant={pinParticipant} />
+            <MeetGrid participants={activeMeet.participants} pinnedUserId={activeMeet.pinnedUserId} onPinParticipant={pinParticipant} layoutMode={layoutMode} />
           )}
         </div>
 
@@ -119,12 +120,12 @@ export function MeetOverlay() {
             <div
               key={reaction.id}
               className={cn(
-                "absolute bottom-36 flex flex-col items-center gap-1",
+                "absolute bottom-20 flex flex-col items-center gap-1",
                 reaction.exiting
                   ? "animate-(--animate-reaction-exit)"
                   : "animate-(--animate-reaction-rise)"
               )}
-              style={{ left: `${84 + reaction.offset}px` }}
+              style={{ left: `calc(15% + ${reaction.offset}px)` }}
             >
               <span className="text-4xl drop-shadow-md">{reaction.emoji}</span>
               {user && (
