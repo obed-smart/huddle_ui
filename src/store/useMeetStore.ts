@@ -17,8 +17,10 @@ interface MeetState {
   isRightPanelOpen: boolean;
   rightPanelTab: "participants" | "chat" | "files";
   meetReactions: MeetReaction[];
+  layoutMode: "grid" | "speaker" | "fullscreen";
   startMeet: (title: string, participants: MeetParticipant[], conversationId: string) => string;
   endMeet: () => void;
+  setLayoutMode: (mode: "grid" | "speaker" | "fullscreen") => void;
   toggleScreenShare: () => void;
   toggleMute: () => void;
   toggleCamera: () => void;
@@ -38,6 +40,7 @@ export const useMeetStore = create<MeetState>()((set) => ({
   isRightPanelOpen: false,
   rightPanelTab: "participants",
   meetReactions: [],
+  layoutMode: "grid",
 
   startMeet: (title, participants, conversationId) => {
     const id = `meet-${Date.now()}`;
@@ -54,7 +57,8 @@ export const useMeetStore = create<MeetState>()((set) => ({
     return id;
   },
 
-  endMeet: () => set({ activeMeet: null }),
+  endMeet: () => set({ activeMeet: null, layoutMode: "grid" }),
+  setLayoutMode: (mode) => set({ layoutMode: mode }),
 
   toggleScreenShare: () =>
     set((state) => {

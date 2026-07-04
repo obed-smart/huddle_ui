@@ -15,23 +15,19 @@ export function CallEventRow({ message }: CallEventRowProps) {
   const Icon = isMissed ? PhoneMissed : event.type === "video" ? Video : Phone;
 
   return (
-    <div className="flex justify-center py-1 px-4">
-      <div className="flex w-full max-w-xs items-center gap-3 rounded-(--radius-lg) border border-border bg-surface px-4 py-3 shadow-(--shadow-sm)">
-        <span
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full",
-            isMissed ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"
-          )}
-        >
-          <Icon className="size-4" />
-        </span>
-        <span className={cn("flex-1 text-sm font-medium", isMissed ? "text-destructive" : "text-foreground")}>
-          {describeCallEvent(event)}
-        </span>
-        <span className="shrink-0 text-[11px] text-muted-foreground">
-          {formatTimestamp(message.createdAt)}
-        </span>
-      </div>
+    <div className="flex justify-center py-1">
+      <span
+        className={cn(
+          "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
+          isMissed
+            ? "bg-destructive/10 text-destructive"
+            : "bg-surface-muted text-muted-foreground"
+        )}
+      >
+        <Icon className="size-3.5" />
+        {describeCallEvent(event)}
+        <span className="text-muted-foreground/60">· {formatTimestamp(message.createdAt)}</span>
+      </span>
     </div>
   );
 }

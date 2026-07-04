@@ -4,8 +4,11 @@ import { useRouter } from "next/navigation";
 import { IconButton } from "@/components/ui/icon-button";
 import {
   Hand,
+  LayoutGrid,
+  Maximize2,
   Mic,
   MicOff,
+  Minimize2,
   PhoneOff,
   ScreenShare,
   ScreenShareOff,
@@ -33,6 +36,8 @@ export function MeetControls() {
   const openRightPanel = useMeetStore((s) => s.openRightPanel);
   const closeRightPanel = useMeetStore((s) => s.closeRightPanel);
   const endMeet = useMeetStore((s) => s.endMeet);
+  const layoutMode = useMeetStore((s) => s.layoutMode);
+  const setLayoutMode = useMeetStore((s) => s.setLayoutMode);
 
   function handleLeave() {
     const meet = useMeetStore.getState().activeMeet;
@@ -79,6 +84,28 @@ export function MeetControls() {
           onClick={() => (isRightPanelOpen ? closeRightPanel() : openRightPanel("participants"))}
         >
           <Users />
+        </IconButton>
+        <IconButton
+          label={
+            layoutMode === "grid"
+              ? "Switch to speaker view"
+              : layoutMode === "speaker"
+              ? "Switch to fullscreen"
+              : "Switch to grid"
+          }
+          variant={layoutMode !== "grid" ? "primary" : "filled"}
+          size="lg"
+          onClick={() =>
+            setLayoutMode(layoutMode === "grid" ? "speaker" : layoutMode === "speaker" ? "fullscreen" : "grid")
+          }
+        >
+          {layoutMode === "grid" ? (
+            <LayoutGrid />
+          ) : layoutMode === "speaker" ? (
+            <Maximize2 />
+          ) : (
+            <Minimize2 />
+          )}
         </IconButton>
         <div className="mx-1 h-8 w-px bg-border" />
         <IconButton label="Leave meeting" variant="destructive" size="lg" onClick={handleLeave}>
