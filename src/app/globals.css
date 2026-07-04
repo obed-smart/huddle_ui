@@ -183,6 +183,7 @@
   --animate-typing-enter: typing-enter 0.18s var(--ease-out-smooth);
   --animate-reaction-rise: reaction-rise 3s var(--ease-out-smooth) forwards;
   --animate-reaction-exit: reaction-exit 0.2s var(--ease-in-smooth) forwards;
+  --animate-sheet-up: sheet-up 0.32s var(--ease-out-smooth) forwards;
 
   @keyframes fade-in {
     from {
@@ -309,6 +310,14 @@
     }
     to {
       opacity: 0;
+    }
+  }
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
     }
   }
 }

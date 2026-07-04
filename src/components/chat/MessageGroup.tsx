@@ -25,7 +25,7 @@ export function MessageGroup({ messages, conversation }: MessageGroupProps) {
   return (
     <div className={cn("flex items-end gap-2.5", isOwn && "flex-row-reverse")}>
       {showSenderMeta && <Avatar name={sender?.name ?? "Unknown"} size="sm" />}
-      <div className={cn("flex max-w-[50%] flex-col gap-1", isOwn ? "items-end" : "items-start")}>
+      <div className={cn("flex min-w-0 flex-col gap-1", isOwn ? "items-end" : "items-start")}>
         {messages.map((message, index) => (
           <MessageBubble
             key={message.id}

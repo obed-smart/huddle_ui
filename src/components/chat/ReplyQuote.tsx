@@ -14,7 +14,7 @@ export function ReplyQuote({ replyTo, isOwn }: ReplyQuoteProps) {
   return (
     <div
       className={cn(
-        "mb-1 min-w-0 overflow-hidden rounded-(--radius-sm) border-l-2 px-2 py-1 text-xs",
+        "mb-1 w-full min-w-0 overflow-hidden rounded-(--radius-sm) border-l-2 px-2 py-1 text-xs",
         isOwn
           ? "border-bubble-sent-foreground/40 bg-bubble-sent-foreground/10"
           : "border-primary/50 bg-black/5"
