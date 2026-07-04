@@ -85,4 +85,7 @@ export {
   StopCircle,
   Film,
   UserRound,
+  Play,
+  Pause,
+  ArrowDown,
 } from "lucide-react";
