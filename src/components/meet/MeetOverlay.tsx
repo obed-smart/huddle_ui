@@ -9,7 +9,6 @@ import { MeetHeader } from "./MeetHeader";
 import { MeetParticipantList } from "./MeetParticipantList";
 import { ScreenShareView } from "./ScreenShareView";
 import { IconButton } from "@/components/ui/icon-button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Folder, MessageSquare, Users, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { useMeetStore } from "@/store/useMeetStore";
@@ -261,7 +260,7 @@ export function MeetOverlay() {
       <div className="fixed inset-0 z-50 bg-slate-900">
         <div className="absolute inset-0" onClick={handleVideoTap}>
           {activeMeet.isScreenSharing ? (
-            <ScreenShareView meet={activeMeet} />
+            <ScreenShareView meet={activeMeet} hideParticipants />
           ) : (
             <MeetGrid
               participants={activeMeet.participants}
@@ -277,8 +276,8 @@ export function MeetOverlay() {
 
         <div
           className={cn(
-            "pointer-events-none absolute inset-0 flex flex-col transition-opacity duration-300",
-            isUIVisible ? "pointer-events-auto opacity-100" : "opacity-0"
+            "absolute inset-0 flex flex-col transition-opacity duration-300",
+            isUIVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
           )}
         >
           <div className="bg-gradient-to-b from-black/50 to-transparent">
@@ -338,8 +337,8 @@ export function MeetOverlay() {
           {/* Auto-hide UI overlaid on video only */}
           <div
             className={cn(
-              "pointer-events-none absolute inset-0 flex flex-col transition-opacity duration-300",
-              isUIVisible ? "pointer-events-auto opacity-100" : "opacity-0"
+              "absolute inset-0 flex flex-col transition-opacity duration-300",
+              isUIVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             )}
           >
             <div className="bg-gradient-to-b from-black/50 to-transparent">
@@ -376,7 +375,10 @@ export function MeetOverlay() {
 
         {/* Inline side panel — never a Sheet in landscape (avoids backdrop-blur bug) */}
         {isRightPanelOpen && (
-          <div className="flex w-64 shrink-0 flex-col border-l border-white/10 bg-background/95 backdrop-blur-md">
+          <div className={cn(
+            "flex w-64 shrink-0 flex-col border-l border-white/10 bg-background/95 backdrop-blur-md transition-opacity duration-300",
+            isUIVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
             <PanelContent
               rightPanelTab={rightPanelTab}
               openRightPanel={openRightPanel}
@@ -426,17 +428,17 @@ export function MeetOverlay() {
 
       {reactionStrip(false)}
 
-      {/* Mobile: Sheet overlay (portrait only — landscape uses inline panel above) */}
-      <Sheet open={isRightPanelOpen} onOpenChange={(open) => !open && closeRightPanel()}>
-        <SheetContent side="right" className="flex flex-col md:hidden">
+      {/* Mobile: full-screen panel replaces video content when open (portrait only) */}
+      {isRightPanelOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background md:hidden">
           <PanelContent
             rightPanelTab={rightPanelTab}
             openRightPanel={openRightPanel}
             closeRightPanel={closeRightPanel}
             participants={activeMeet.participants}
           />
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
 
       <MeetControls />
     </div>
