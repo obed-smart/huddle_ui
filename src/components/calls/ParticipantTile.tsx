@@ -31,8 +31,10 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
 
   return (
     <div
+      onClick={onTogglePin}
       className={cn(
         "group/tile relative flex items-center justify-center overflow-hidden rounded-(--radius-lg) bg-slate-800",
+        onTogglePin && "cursor-pointer",
         participant.isSpeaking && "ring-2 ring-primary",
         className
       )}
@@ -52,19 +54,17 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
         )}
       </div>
 
-      {/* Pin toggle — hover reveal on desktop, always visible on touch */}
+      {/* Pin indicator — visible when pinned; hover-reveal on desktop */}
       {onTogglePin && (
-        <button
-          type="button"
-          onClick={onTogglePin}
-          aria-label={isPinned ? "Unpin" : "Pin"}
+        <div
           className={cn(
-            "absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-slate-900/70 text-white transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+            "absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-slate-900/70 text-white transition-opacity",
             isPinned ? "opacity-100" : "opacity-0 group-hover/tile:opacity-100"
           )}
+          aria-hidden
         >
           {isPinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
-        </button>
+        </div>
       )}
 
       <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-slate-900/70 px-2 py-1 text-xs font-medium text-white">

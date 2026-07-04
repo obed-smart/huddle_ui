@@ -373,15 +373,30 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
 
           {/* Text input or recording indicator */}
           {isRecording ? (
-            <div className="flex flex-1 items-center gap-2 py-[11px] pl-1 pr-2">
-              <span className="size-2.5 animate-pulse rounded-full bg-destructive" />
-              <span className="flex-1 text-sm font-medium tabular-nums text-destructive">
+            <div className="flex flex-1 items-center gap-2 py-[9px] pl-1 pr-2">
+              {/* Pulsing record dot */}
+              <span className="size-2 shrink-0 animate-pulse rounded-full bg-destructive" />
+              {/* Animated waveform */}
+              <div className="flex flex-1 items-center justify-around gap-px" style={{ height: 24 }}>
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="w-0.5 rounded-full bg-destructive/60 animate-(--animate-voice-bar)"
+                    style={{
+                      animationDelay: `${(i * 73) % 600}ms`,
+                      animationDuration: `${550 + (i * 137) % 350}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+              {/* Timer */}
+              <span className="shrink-0 text-xs font-medium tabular-nums text-destructive">
                 {formatRecordingTime(recordingSeconds)}
               </span>
               <button
                 type="button"
                 onClick={cancelRecording}
-                className="text-xs text-muted-foreground underline hover:text-foreground"
+                className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground"
               >
                 Cancel
               </button>

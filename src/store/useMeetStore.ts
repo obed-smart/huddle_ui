@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { MeetParticipant, MeetSession } from "@/types";
-import { CURRENT_USER_ID } from "@/lib/seed-data";
+import { CURRENT_USER_ID, getUserById } from "@/lib/seed-data";
 
 export interface MeetReaction {
   id: string;
@@ -10,6 +10,23 @@ export interface MeetReaction {
   exiting: boolean;
 }
 
+export interface MeetChatMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
+}
+
+const DEV_CHAT_MESSAGES = [
+  "Can everyone hear me?",
+  "Great presentation! 👏",
+  "Could you repeat that?",
+  "I have a question about the last slide",
+  "My mic is on mute, one sec",
+  "Thanks for sharing!",
+  "Can we revisit that point?",
+];
+
 interface MeetState {
   activeMeet: MeetSession | null;
   isMuted: boolean;
@@ -17,6 +34,7 @@ interface MeetState {
   isRightPanelOpen: boolean;
   rightPanelTab: "participants" | "chat" | "files";
   meetReactions: MeetReaction[];
+  meetChatMessages: MeetChatMessage[];
   layoutMode: "grid" | "speaker" | "fullscreen";
   startMeet: (title: string, participants: MeetParticipant[], conversationId: string) => string;
   endMeet: () => void;
@@ -31,15 +49,18 @@ interface MeetState {
   closeRightPanel: () => void;
   addMeetReaction: (emoji: string, userId: string) => void;
   devSimulateReaction: () => void;
+  sendMeetChatMessage: (text: string) => void;
+  devSimulateMeetChat: () => void;
 }
 
-export const useMeetStore = create<MeetState>()((set) => ({
+export const useMeetStore = create<MeetState>()((set, get) => ({
   activeMeet: null,
   isMuted: false,
   isCameraOff: false,
   isRightPanelOpen: false,
   rightPanelTab: "participants",
   meetReactions: [],
+  meetChatMessages: [],
   layoutMode: "grid",
 
   startMeet: (title, participants, conversationId) => {
@@ -149,6 +170,32 @@ export const useMeetStore = create<MeetState>()((set) => ({
     setTimeout(() => {
       set((state) => ({ meetReactions: state.meetReactions.filter((r) => r.id !== id) }));
     }, 3000);
+  },
+
+  sendMeetChatMessage: (text) => {
+    const id = `mc-${Date.now()}`;
+    set((state) => ({
+      meetChatMessages: [
+        ...state.meetChatMessages,
+        { id, senderId: CURRENT_USER_ID, text, createdAt: new Date().toISOString() },
+      ],
+    }));
+  },
+
+  devSimulateMeetChat: () => {
+    const meet = get().activeMeet;
+    if (!meet) return;
+    const others = meet.participants.filter((p) => p.userId !== CURRENT_USER_ID);
+    if (others.length === 0) return;
+    const sender = others[Math.floor(Math.random() * others.length)];
+    const text = DEV_CHAT_MESSAGES[Math.floor(Math.random() * DEV_CHAT_MESSAGES.length)];
+    const id = `mc-sim-${Date.now()}`;
+    set((state) => ({
+      meetChatMessages: [
+        ...state.meetChatMessages,
+        { id, senderId: sender.userId, text, createdAt: new Date().toISOString() },
+      ],
+    }));
   },
 
   devSimulateReaction: () => {
