@@ -8,7 +8,6 @@ import type { CallParticipant } from "@/types";
 const PIP_W = 120;
 const PIP_H = 160; // 3:4 aspect ratio
 const MARGIN = 16;
-const CONTROLS_SAFE = 96; // approximate height of CallControls bar
 
 interface PipCallLayoutProps {
   participants: CallParticipant[];
@@ -47,8 +46,8 @@ export function PipCallLayout({ participants }: PipCallLayoutProps) {
     return {
       tl: { x: MARGIN, y: MARGIN },
       tr: { x: width - PIP_W - MARGIN, y: MARGIN },
-      bl: { x: MARGIN, y: height - PIP_H - CONTROLS_SAFE },
-      br: { x: width - PIP_W - MARGIN, y: height - PIP_H - CONTROLS_SAFE },
+      bl: { x: MARGIN, y: height - PIP_H - MARGIN },
+      br: { x: width - PIP_W - MARGIN, y: height - PIP_H - MARGIN },
     };
   }, []);
 
@@ -83,7 +82,12 @@ export function PipCallLayout({ participants }: PipCallLayoutProps) {
     const dy = e.clientY - dragStartRef.current.py;
     if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
       hasMovedRef.current = true;
-      const newPos = { x: dragStartRef.current.ox + dx, y: dragStartRef.current.oy + dy };
+      const el = containerRef.current;
+      const { width, height } = el?.getBoundingClientRect() ?? { width: 400, height: 700 };
+      const newPos = {
+        x: Math.max(0, Math.min(width - PIP_W, dragStartRef.current.ox + dx)),
+        y: Math.max(0, Math.min(height - PIP_H, dragStartRef.current.oy + dy)),
+      };
       setPipPos(newPos);
       pipPosRef.current = newPos;
     }

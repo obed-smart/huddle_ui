@@ -6,7 +6,7 @@ import { BubbleContent } from "./BubbleContent";
 import { EmojiCategory } from "./EmojiCategory";
 import { EmojiGrid } from "./EmojiGrid";
 import { ReactionPills } from "./ReactionPills";
-import { Copy, MoreHorizontal, Pencil, Reply, Search, Smile } from "@/components/ui/icons";
+import { Copy, MoreHorizontal, Pencil, Plus, Reply, Search } from "@/components/ui/icons";
 import { CURRENT_USER_ID } from "@/lib/seed-data";
 import { EMOJI_CATEGORIES } from "@/lib/emoji-data";
 import { useChatStore } from "@/store/useChatStore";
@@ -268,9 +268,9 @@ export function MessageBubble({ message, isOwn, isLast, senderName }: MessageBub
                     type="button"
                     onClick={handleExpandEmoji}
                     aria-label="More reactions"
-                    className="flex size-6 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground"
+                    className="flex size-7 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-transform hover:scale-125 hover:text-foreground active:scale-95"
                   >
-                    <Smile className="size-3.5" />
+                    <Plus className="size-4" />
                   </button>
                 </div>
 

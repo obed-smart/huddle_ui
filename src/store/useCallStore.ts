@@ -20,6 +20,7 @@ interface CallState {
   toggleMute: () => void;
   toggleCamera: () => void;
   devAddParticipant: () => void;
+  addParticipantById: (userId: string) => void;
 }
 
 export const useCallStore = create<CallState>()((set, get) => {
@@ -189,6 +190,23 @@ export const useCallStore = create<CallState>()((set, get) => {
             participants: [
               ...state.activeCall.participants,
               { userId: next, muted: false, cameraOff: false },
+            ],
+          },
+        };
+      });
+    },
+
+    addParticipantById: (userId: string) => {
+      set((state) => {
+        if (!state.activeCall) return state;
+        const already = state.activeCall.participants.some((p) => p.userId === userId);
+        if (already) return state;
+        return {
+          activeCall: {
+            ...state.activeCall,
+            participants: [
+              ...state.activeCall.participants,
+              { userId, muted: false, cameraOff: false },
             ],
           },
         };
