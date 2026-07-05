@@ -43,8 +43,9 @@ export function ParticipantRow({ participant, onToggleMute }: ParticipantRowProp
         disabled={!onToggleMute}
         aria-label={participant.muted ? `Unmute ${name}` : `Mute ${name}`}
         className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default",
-          onToggleMute && "hover:bg-surface-hover hover:text-foreground"
+          "flex size-7 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default",
+          onToggleMute ? "cursor-pointer hover:bg-surface-hover" : "",
+          participant.muted ? "text-destructive" : "text-muted-foreground"
         )}
       >
         {participant.muted ? <MicOff className="size-4" /> : <Mic className="size-4" />}

@@ -54,60 +54,87 @@ export function MeetControls() {
 
   return (
     <div className="flex shrink-0 justify-center px-4 pb-5 pt-3 md:pb-6">
-      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm md:gap-3">
-        <IconButton label={isMuted ? "Unmute" : "Mute"} variant="filled" size="lg" onClick={toggleMute}>
+      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 shadow-(--shadow-sm) md:gap-2.5">
+        {/* Mic — red when muted (safety-critical, must be obvious) */}
+        <IconButton
+          label={isMuted ? "Unmute" : "Mute"}
+          size="lg"
+          onClick={toggleMute}
+          className={isMuted
+            ? "bg-destructive/10 text-destructive ring-1 ring-destructive/25 hover:bg-destructive/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
+        >
           {isMuted ? <MicOff /> : <Mic />}
         </IconButton>
+
+        {/* Camera — red when off */}
         <IconButton
           label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-          variant="filled"
           size="lg"
           onClick={toggleCamera}
+          className={isCameraOff
+            ? "bg-destructive/10 text-destructive ring-1 ring-destructive/25 hover:bg-destructive/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
         >
           {isCameraOff ? <VideoOff /> : <Video />}
         </IconButton>
+
+        {/* Screen share — emerald when active */}
         <IconButton
           label={isSharing ? "Stop sharing" : "Share screen"}
-          variant={isSharing ? "primary" : "filled"}
           size="lg"
           onClick={toggleScreenShare}
+          className={isSharing
+            ? "bg-success/10 text-success ring-1 ring-success/25 hover:bg-success/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
         >
           {isSharing ? <ScreenShareOff /> : <ScreenShare />}
         </IconButton>
-        <IconButton label={isHandRaised ? "Lower hand" : "Raise hand"} variant={isHandRaised ? "primary" : "filled"} size="lg" onClick={toggleHandRaised}>
+
+        {/* Hand raise — amber when raised */}
+        <IconButton
+          label={isHandRaised ? "Lower hand" : "Raise hand"}
+          size="lg"
+          onClick={toggleHandRaised}
+          className={isHandRaised
+            ? "bg-warning/10 text-warning ring-1 ring-warning/25 hover:bg-warning/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
+        >
           <Hand />
         </IconButton>
+
+        {/* Participants panel — primary when open */}
         <IconButton
           label={isRightPanelOpen ? "Hide panel" : "Show participants"}
-          variant={isRightPanelOpen ? "primary" : "filled"}
           size="lg"
           onClick={() => (isRightPanelOpen ? closeRightPanel() : openRightPanel("participants"))}
+          className={isRightPanelOpen
+            ? "bg-primary/10 text-primary ring-1 ring-primary/25 hover:bg-primary/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
         >
           <Users />
         </IconButton>
+
+        {/* Layout mode — primary when not default grid */}
         <IconButton
           label={
-            layoutMode === "grid"
-              ? "Switch to speaker view"
-              : layoutMode === "speaker"
-              ? "Switch to fullscreen"
-              : "Switch to grid"
+            layoutMode === "grid" ? "Switch to speaker view"
+            : layoutMode === "speaker" ? "Switch to fullscreen"
+            : "Switch to grid"
           }
-          variant={layoutMode !== "grid" ? "primary" : "filled"}
           size="lg"
           onClick={() =>
             setLayoutMode(layoutMode === "grid" ? "speaker" : layoutMode === "speaker" ? "fullscreen" : "grid")
           }
+          className={layoutMode !== "grid"
+            ? "bg-primary/10 text-primary ring-1 ring-primary/25 hover:bg-primary/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
         >
-          {layoutMode === "grid" ? (
-            <LayoutGrid />
-          ) : layoutMode === "speaker" ? (
-            <Maximize2 />
-          ) : (
-            <Minimize2 />
-          )}
+          {layoutMode === "grid" ? <LayoutGrid /> : layoutMode === "speaker" ? <Maximize2 /> : <Minimize2 />}
         </IconButton>
+
         <div className="mx-1 h-8 w-px bg-border" />
+
         <IconButton label="Leave meeting" variant="destructive" size="lg" onClick={handleLeave}>
           <PhoneOff />
         </IconButton>

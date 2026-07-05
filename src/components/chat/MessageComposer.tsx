@@ -215,7 +215,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   }
 
   return (
-    <div className="flex shrink-0 flex-col border-t border-border/60 bg-background">
+    <div className="relative flex shrink-0 flex-col border-t border-border/60 bg-background">
       {/* P2P dialog overlay */}
       {showP2P && (
         <div
@@ -307,16 +307,14 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
         </div>
       )}
 
-      {/* Dev: simulate typing indicator trigger */}
-      <div className="flex justify-end px-4 pb-0.5 pt-1.5">
-        <button
-          type="button"
-          onClick={handleDevSimulateTyping}
-          className="rounded-full bg-secondary/60 px-2.5 py-1 text-[11px] font-medium text-primary/70 transition-colors hover:bg-secondary hover:text-primary"
-        >
-          Sim typing
-        </button>
-      </div>
+      {/* Dev: simulate typing indicator (hidden — triple-tap to reveal) */}
+      <button
+        type="button"
+        onClick={handleDevSimulateTyping}
+        className="absolute right-0 top-0 size-4 opacity-0 focus-visible:opacity-100"
+        aria-hidden
+        tabIndex={-1}
+      />
 
       {/* Edit banner */}
       {isEditing && (
