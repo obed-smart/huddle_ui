@@ -88,4 +88,5 @@ export {
   Play,
   Pause,
   ArrowDown,
+  UserMinus,
 } from "lucide-react";

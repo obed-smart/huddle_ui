@@ -19,7 +19,7 @@ export function groupMessagesByDay(messages: Message[]): DaySegment[] {
       segments.push(segment);
     }
 
-    if (message.call || message.meet) {
+    if (message.call || message.meet || message.isSystem) {
       segment.groups.push([message]);
       continue;
     }

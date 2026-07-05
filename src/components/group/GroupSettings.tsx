@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,10 @@ import {
   Globe,
   Lock,
   Plus,
+  Search,
   ShieldCheck,
+  UserMinus,
+  X,
 } from "@/components/ui/icons";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { getInviteUrl } from "@/lib/group-utils";
@@ -29,6 +33,146 @@ import { useConversationRequestStore, useRelation } from "@/store/useConversatio
 import { useChatStore } from "@/store/useChatStore";
 import { usePresence } from "@/store/usePresenceStore";
 import type { Conversation, GroupMemberRole } from "@/types";
+
+// ── Member profile bottom-sheet ───────────────────────────────────────────────
+
+function MemberSheet({
+  userId,
+  role,
+  conversationId,
+  currentUserRole,
+  onClose,
+}: {
+  userId: string;
+  role: GroupMemberRole;
+  conversationId: string;
+  currentUserRole: GroupMemberRole;
+  onClose: () => void;
+}) {
+  const user = getUserById(userId);
+  const status = usePresence(userId);
+  const relation = useRelation(userId);
+  const sendPing = useConversationRequestStore((s) => s.sendPing);
+  const updateMemberRole = useChatStore((s) => s.updateMemberRole);
+  const removeMember = useChatStore((s) => s.removeMember);
+  const addSystemMessage = useChatStore((s) => s.addSystemMessage);
+
+  if (!user) return null;
+
+  const isSelf = userId === CURRENT_USER_ID;
+  const canManage = !isSelf && (currentUserRole === "owner" || currentUserRole === "admin");
+  const canRemove = !isSelf && currentUserRole === "owner";
+
+  function handleRemove() {
+    removeMember(conversationId, userId);
+    addSystemMessage(conversationId, `${user!.name} was removed from the group`);
+    onClose();
+  }
+
+  return typeof document !== "undefined"
+    ? createPortal(
+        <div className="fixed inset-0 z-[200] flex items-end" onClick={onClose}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" aria-hidden />
+          <div
+            className="relative w-full animate-(--animate-sheet-up) rounded-t-3xl bg-background pb-10 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div className="flex justify-center py-3">
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+
+            {/* Profile header */}
+            <div className="flex items-center gap-4 px-5 pb-4 pt-1">
+              <Avatar name={user.name} imageUrl={user.avatarUrl} size="lg" presence={status} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base font-semibold text-foreground">
+                  {isSelf ? "You" : user.name}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">@{user.username}</p>
+              </div>
+              {role === "owner" && (
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary">
+                  <Crown className="size-3" />
+                  Owner
+                </span>
+              )}
+              {role === "admin" && (
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary">
+                  <ShieldCheck className="size-3" />
+                  Admin
+                </span>
+              )}
+            </div>
+
+            {/* Actions */}
+            {!isSelf && (
+              <div className="border-t border-border">
+                {/* Ping */}
+                {relation === "none" && (
+                  <button
+                    type="button"
+                    onClick={() => { sendPing(userId); onClose(); }}
+                    className="flex w-full items-center gap-3 px-5 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover active:bg-surface-hover"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-primary text-base">👋</span>
+                    Ping
+                  </button>
+                )}
+                {relation === "pending" && (
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground text-base">👋</span>
+                    <span className="text-sm text-muted-foreground">Pinged — waiting for response</span>
+                  </div>
+                )}
+
+                {/* Admin management */}
+                {canManage && role === "admin" && currentUserRole === "owner" && (
+                  <button
+                    type="button"
+                    onClick={() => { updateMemberRole(conversationId, userId, "member"); onClose(); }}
+                    className="flex w-full items-center gap-3 px-5 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover active:bg-surface-hover"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+                      <ShieldCheck className="size-4 text-muted-foreground" />
+                    </span>
+                    Dismiss as admin
+                  </button>
+                )}
+                {canManage && role === "member" && (
+                  <button
+                    type="button"
+                    onClick={() => { updateMemberRole(conversationId, userId, "admin"); onClose(); }}
+                    className="flex w-full items-center gap-3 px-5 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover active:bg-surface-hover"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+                      <ShieldCheck className="size-4 text-primary" />
+                    </span>
+                    Make group admin
+                  </button>
+                )}
+
+                {/* Remove from group — owner only */}
+                {canRemove && (
+                  <button
+                    type="button"
+                    onClick={handleRemove}
+                    className="flex w-full items-center gap-3 px-5 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 active:bg-destructive/5"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                      <UserMinus className="size-4 text-destructive" />
+                    </span>
+                    Remove from group
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+}
 
 // ── Member row ────────────────────────────────────────────────────────────────
 
@@ -45,72 +189,55 @@ function MemberRow({
 }) {
   const user = getUserById(userId);
   const status = usePresence(userId);
-  const updateMemberRole = useChatStore((s) => s.updateMemberRole);
-  const relation = useRelation(userId);
-  const sendPing = useConversationRequestStore((s) => s.sendPing);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   if (!user) return null;
   const isSelf = userId === CURRENT_USER_ID;
-  const canPromote =
-    !isSelf &&
-    role === "member" &&
-    (currentUserRole === "owner" || currentUserRole === "admin");
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-3 px-6 py-2.5",
-        role === "owner" && "border-l-2 border-primary pl-5"
-      )}
-    >
-      <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" presence={status} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">
-          {isSelf ? "You" : user.name}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
-      </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className={cn(
+          "flex w-full items-center gap-3 px-6 py-2.5 text-left transition-colors hover:bg-surface-hover active:bg-surface-hover",
+          role === "owner" && "border-l-2 border-primary pl-5"
+        )}
+      >
+        <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" presence={status} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground">
+            {isSelf ? "You" : user.name}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
+        </div>
+        {role === "owner" && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
+            <Crown className="size-2.5" />
+            Owner
+          </span>
+        )}
+        {role === "admin" && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
+            <ShieldCheck className="size-2.5" />
+            Admin
+          </span>
+        )}
+        {role === "member" && (
+          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">Member</span>
+        )}
+      </button>
 
-      {role === "owner" && (
-        <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
-          <Crown className="size-2.5" />
-          Owner
-        </span>
+      {sheetOpen && (
+        <MemberSheet
+          userId={userId}
+          role={role}
+          conversationId={conversationId}
+          currentUserRole={currentUserRole}
+          onClose={() => setSheetOpen(false)}
+        />
       )}
-      {role === "admin" && (
-        <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-primary">
-          <ShieldCheck className="size-2.5" />
-          Admin
-        </span>
-      )}
-      {currentUserRole === "owner" && !isSelf && role === "admin" && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => updateMemberRole(conversationId, userId, "member")}
-          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-        >
-          Remove admin
-        </Button>
-      )}
-      {!isSelf && role === "member" && relation === "none" && (
-        <Button size="sm" variant="ghost" onClick={() => sendPing(userId)}>
-          Ping
-        </Button>
-      )}
-      {!isSelf && role === "member" && relation === "pending" && (
-        <span className="shrink-0 text-xs text-muted-foreground">Pinged</span>
-      )}
-      {canPromote && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => updateMemberRole(conversationId, userId, "admin")}
-        >
-          Make admin
-        </Button>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -203,6 +330,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
   const [description, setDescription] = useState(conversation.description ?? "");
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [memberSearch, setMemberSearch] = useState("");
 
   const updateGroupName = useChatStore((s) => s.updateGroupName);
   const updateGroupDescription = useChatStore((s) => s.updateGroupDescription);
@@ -214,6 +342,15 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
   const inviteUrl = conversation.inviteCode ? getInviteUrl(conversation.inviteCode) : undefined;
+
+  const filteredMembers = memberSearch.trim()
+    ? conversation.participantIds.filter((id) => {
+        const u = getUserById(id);
+        if (!u) return false;
+        const q = memberSearch.toLowerCase();
+        return u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q);
+      })
+    : conversation.participantIds;
 
   function handleSaveName() {
     const trimmed = name.trim();
@@ -359,7 +496,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
         {/* Members */}
         <div className="py-2">
-          <div className="flex items-center justify-between px-6 pb-2 pt-4">
+          <div className="flex items-center justify-between px-6 pb-3 pt-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {conversation.participantIds.length} members
             </p>
@@ -374,20 +511,52 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               </button>
             )}
           </div>
-          {conversation.participantIds.map((userId) => {
-            const role: GroupMemberRole =
-              conversation.memberRoles?.[userId] ??
-              (userId === conversation.participantIds[0] ? "owner" : "member");
-            return (
-              <MemberRow
-                key={userId}
-                userId={userId}
-                role={role}
-                conversationId={conversation.id}
-                currentUserRole={currentUserRole}
-              />
-            );
-          })}
+
+          {/* Member search */}
+          {conversation.participantIds.length > 4 && (
+            <div className="px-6 pb-3">
+              <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-2 ring-1 ring-border/50">
+                <Search className="size-3.5 shrink-0 text-muted-foreground" />
+                <input
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  placeholder="Search members…"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
+                {memberSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setMemberSearch("")}
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                    aria-label="Clear search"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {filteredMembers.length === 0 ? (
+            <p className="px-6 py-4 text-center text-sm text-muted-foreground">
+              No members match &ldquo;{memberSearch}&rdquo;
+            </p>
+          ) : (
+            filteredMembers.map((userId) => {
+              const role: GroupMemberRole =
+                conversation.memberRoles?.[userId] ??
+                (userId === conversation.participantIds[0] ? "owner" : "member");
+              return (
+                <MemberRow
+                  key={userId}
+                  userId={userId}
+                  role={role}
+                  conversationId={conversation.id}
+                  currentUserRole={currentUserRole}
+                />
+              );
+            })
+          )}
         </div>
 
         {canEdit && (
