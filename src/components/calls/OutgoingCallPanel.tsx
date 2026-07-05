@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
-import { IconButton } from "@/components/ui/icon-button";
 import { PhoneOff } from "@/components/ui/icons";
 import { useCallStore } from "@/store/useCallStore";
 import type { CallSession } from "@/types";
@@ -30,24 +29,45 @@ export function OutgoingCallPanel({ call, name }: OutgoingCallPanelProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+      {/* Pulsing avatar */}
       <div className="relative flex items-center justify-center">
         {!isDeclined && (
           <>
-            <span className="absolute size-24 animate-ping rounded-full bg-primary/20" />
-            <span className="absolute size-32 animate-ping rounded-full bg-primary/10 [animation-delay:300ms]" />
+            <span className="absolute size-28 animate-ping rounded-full bg-white/10" />
+            <span className="absolute size-36 animate-ping rounded-full bg-white/5 [animation-delay:300ms]" />
+            <span className="absolute size-44 animate-ping rounded-full bg-white/[0.03] [animation-delay:600ms]" />
           </>
         )}
         <Avatar name={name} size="xl" presence={isDeclined ? undefined : "online"} />
       </div>
-      <div className="space-y-1">
-        <p className="font-heading text-xl font-semibold text-foreground">{name}</p>
-        <p className="text-sm text-muted-foreground">{STATUS_LABEL[call.status] ?? "Calling…"}</p>
+
+      {/* Name + status */}
+      <div className="space-y-2">
+        <p className="font-heading text-2xl font-semibold text-white">{name}</p>
+        <p className="text-sm font-medium text-white/60">
+          {STATUS_LABEL[call.status] ?? "Calling…"}
+        </p>
       </div>
-      {!isDeclined && (
-        <IconButton label="Cancel call" variant="destructive" size="lg" onClick={handleCancel}>
-          <PhoneOff />
-        </IconButton>
+
+      {/* Cancel / declined */}
+      {isDeclined ? (
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
+        >
+          Close
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleCancel}
+          aria-label="Cancel call"
+          className="flex size-16 items-center justify-center rounded-full bg-destructive text-white shadow-lg transition-transform hover:bg-destructive-hover active:scale-95"
+        >
+          <PhoneOff className="size-6" />
+        </button>
       )}
     </div>
   );
