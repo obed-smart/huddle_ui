@@ -25,35 +25,39 @@ export function CallControls({ conversationId }: CallControlsProps) {
   return (
     <div className="flex shrink-0 justify-center px-4 pb-6 pt-3">
       <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-5 py-3 shadow-lg backdrop-blur-md">
-        {/* Mute */}
+        {/* Mute — rose tint when muted so it's unmissable */}
         <button
           type="button"
           onClick={toggleMute}
           aria-label={isMuted ? "Unmute" : "Mute"}
+          title={isMuted ? "Unmute" : "Mute"}
           className={`flex size-12 items-center justify-center rounded-full transition-all active:scale-95 ${
             isMuted
-              ? "bg-white/20 text-white ring-1 ring-white/30"
+              ? "bg-rose-500/30 text-rose-300 ring-1 ring-rose-400/40 hover:bg-rose-500/40"
               : "bg-white/10 text-white hover:bg-white/20"
           }`}
         >
           {isMuted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
         </button>
 
-        {/* Camera */}
+        {/* Camera — rose tint when off */}
         <button
           type="button"
           onClick={toggleCamera}
           disabled={isVideoPending}
           aria-label={
-            isVideoPending
-              ? "Connecting camera…"
-              : isCameraOff
-              ? "Turn camera on"
-              : "Turn camera off"
+            isVideoPending ? "Connecting camera…"
+            : isCameraOff ? "Turn camera on"
+            : "Turn camera off"
+          }
+          title={
+            isVideoPending ? "Connecting camera…"
+            : isCameraOff ? "Turn camera on"
+            : "Turn camera off"
           }
           className={`flex size-12 items-center justify-center rounded-full transition-all active:scale-95 disabled:opacity-50 ${
             isCameraOff
-              ? "bg-white/20 text-white ring-1 ring-white/30"
+              ? "bg-rose-500/30 text-rose-300 ring-1 ring-rose-400/40 hover:bg-rose-500/40"
               : "bg-white/10 text-white hover:bg-white/20"
           }`}
         >

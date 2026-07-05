@@ -13,12 +13,12 @@ interface ParticipantTileProps {
 
 function SpeakingWaveform() {
   return (
-    <span className="flex items-end gap-[2px] h-3">
+    <span className="flex items-end gap-[2px]" style={{ height: 12 }}>
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
-          className="w-[3px] rounded-full bg-primary animate-bounce"
-          style={{ animationDelay: `${i * 80}ms`, height: `${50 + (i % 2) * 30}%` }}
+          className="w-[3px] rounded-full bg-emerald-400 animate-(--animate-voice-bar)"
+          style={{ animationDelay: `${i * 90}ms`, height: "100%", transformOrigin: "bottom" }}
         />
       ))}
     </span>
@@ -33,9 +33,9 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
     <div
       onClick={onTogglePin}
       className={cn(
-        "group/tile relative flex items-center justify-center overflow-hidden rounded-(--radius-lg) bg-slate-800",
-        onTogglePin && "cursor-pointer",
-        participant.isSpeaking && "ring-2 ring-primary",
+        "group/tile relative flex items-center justify-center overflow-hidden rounded-(--radius-lg) bg-gradient-to-b from-slate-700 to-slate-900",
+        onTogglePin && "cursor-pointer active:scale-[0.98] transition-transform",
+        participant.isSpeaking && "ring-2 ring-emerald-400 ring-offset-1 ring-offset-slate-900",
         className
       )}
     >
@@ -67,13 +67,15 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
         </div>
       )}
 
-      <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-slate-900/70 px-2 py-1 text-xs font-medium text-white">
-        {participant.isSpeaking ? (
-          <SpeakingWaveform />
-        ) : (
-          participant.muted && <MicOff className="size-3" />
-        )}
-        <span>{name}</span>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-2.5 pb-2 pt-5">
+        <div className="flex items-center gap-1.5">
+          {participant.isSpeaking ? (
+            <SpeakingWaveform />
+          ) : (
+            participant.muted && <MicOff className="size-3 shrink-0 text-white/70" />
+          )}
+          <span className="truncate text-xs font-medium text-white drop-shadow-sm">{name}</span>
+        </div>
       </div>
     </div>
   );
