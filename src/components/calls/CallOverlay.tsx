@@ -20,15 +20,28 @@ interface CallOverlayProps {
   conversationId: string;
 }
 
-function getGridLayout(count: number): { cols: number; rows: number } {
+function getGridLayout(count: number, small: boolean): { cols: number; rows: number } {
+  const maxCols = small ? 2 : 3;
   if (count <= 1) return { cols: 1, rows: 1 };
   if (count <= 4) return { cols: 2, rows: 2 };
-  if (count <= 6) return { cols: 3, rows: 2 };
-  if (count <= 9) return { cols: 3, rows: 3 };
-  return { cols: 4, rows: Math.ceil(count / 4) };
+  if (count <= 6) return { cols: maxCols, rows: small ? 3 : 2 };
+  if (count <= 9) return { cols: maxCols, rows: small ? 5 : 3 };
+  return { cols: small ? 2 : 4, rows: Math.ceil(count / (small ? 2 : 4)) };
 }
 
-// Per-tile "..." context menu wrapper
+function useIsSmallScreen() {
+  const [small, setSmall] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 640 : true
+  );
+  useEffect(() => {
+    const handler = () => setSmall(window.innerWidth < 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return small;
+}
+
+// Per-tile "..." context menu — opens a bottom-sheet portal
 function TileWithMenu({
   participant,
   isPinned,
@@ -40,42 +53,70 @@ function TileWithMenu({
   onPin: (id: string | undefined) => void;
   className?: string;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const user = getUserById(participant.userId);
 
   return (
-    <div className={cn("relative overflow-hidden rounded-(--radius-md)", className)}>
-      <ParticipantTile
-        participant={participant}
-        className={cn("h-full w-full rounded-none", isPinned && "ring-2 ring-primary")}
-      />
+    <>
+      <div className={cn("relative overflow-hidden rounded-(--radius-md)", className)}>
+        <ParticipantTile
+          participant={participant}
+          className={cn("h-full w-full rounded-none", isPinned && "ring-2 ring-primary")}
+        />
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setSheetOpen(true); }}
+          className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 active:scale-95"
+          aria-label="Tile options"
+        >
+          <MoreHorizontal className="size-3.5" />
+        </button>
+      </div>
 
-      {/* 3-dot options button */}
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-        className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 active:scale-95"
-        aria-label="Tile options"
-      >
-        <MoreHorizontal className="size-3.5" />
-      </button>
-
-      {/* Dropdown menu */}
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden />
-          <div className="absolute right-2 top-10 z-20 min-w-[148px] overflow-hidden rounded-(--radius-md) bg-slate-800 py-1 shadow-2xl ring-1 ring-white/10">
-            <button
-              type="button"
-              onClick={() => { onPin(isPinned ? undefined : participant.userId); setMenuOpen(false); }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white hover:bg-white/10 active:bg-white/15"
+      {sheetOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[150] flex items-end"
+            onClick={() => setSheetOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" aria-hidden />
+            <div
+              className="relative w-full animate-(--animate-sheet-up) rounded-t-3xl bg-background pb-10 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Maximize2 className="size-4 shrink-0" />
-              {isPinned ? "Restore grid" : "Make full screen"}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+              {/* Drag handle */}
+              <div className="flex justify-center py-3">
+                <div className="h-1 w-10 rounded-full bg-border" />
+              </div>
+
+              {/* Participant name */}
+              {user && (
+                <div className="px-5 pb-3 pt-1">
+                  <p className="text-base font-semibold text-foreground">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">@{user.username}</p>
+                </div>
+              )}
+
+              <div className="mt-1 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => { onPin(isPinned ? undefined : participant.userId); setSheetOpen(false); }}
+                  className="flex w-full items-center gap-3 px-5 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover active:bg-surface-hover"
+                >
+                  {isPinned ? (
+                    <Minimize2 className="size-5 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Maximize2 className="size-5 shrink-0 text-muted-foreground" />
+                  )}
+                  {isPinned ? "Restore grid" : "Make full screen"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 
@@ -89,8 +130,9 @@ function FluidGrid({
   pinnedUserId?: string;
   onPin: (id: string | undefined) => void;
 }) {
+  const isSmall = useIsSmallScreen();
   const count = participants.length;
-  const { cols, rows } = getGridLayout(count);
+  const { cols, rows } = getGridLayout(count, isSmall);
   const scrollable = count > 9;
 
   return (

@@ -37,6 +37,7 @@ interface ChatState {
   updateGroupDescription: (conversationId: string, description: string) => void;
   toggleGroupPrivacy: (conversationId: string) => void;
   updateMemberRole: (conversationId: string, userId: string, role: GroupMemberRole) => void;
+  removeMember: (conversationId: string, userId: string) => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -318,6 +319,21 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       conversations: state.conversations.map((c) =>
         c.id === conversationId
           ? { ...c, memberRoles: { ...(c.memberRoles ?? {}), [userId]: role } }
+          : c
+      ),
+    })),
+
+  removeMember: (conversationId, userId) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === conversationId
+          ? {
+              ...c,
+              participantIds: c.participantIds.filter((id) => id !== userId),
+              memberRoles: Object.fromEntries(
+                Object.entries(c.memberRoles ?? {}).filter(([id]) => id !== userId)
+              ),
+            }
           : c
       ),
     })),
