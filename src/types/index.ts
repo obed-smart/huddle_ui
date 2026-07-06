@@ -121,7 +121,7 @@ export interface MeetSession {
   pinnedUserId?: string;
 }
 
-export type NotificationType = "message" | "call" | "mention" | "system" | "ping";
+export type NotificationType = "message" | "call" | "mention" | "system" | "ping" | "join-request";
 
 export interface NotificationItem {
   id: string;

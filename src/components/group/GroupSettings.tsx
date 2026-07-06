@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -32,6 +32,8 @@ import { cn } from "@/lib/utils";
 import { useConversationRequestStore, useRelation } from "@/store/useConversationRequestStore";
 import { useChatStore } from "@/store/useChatStore";
 import { usePresence } from "@/store/usePresenceStore";
+import { useGroupStore, useAdminPendingRequests } from "@/store/useGroupStore";
+import { formatRelativeTime } from "@/lib/utils";
 import type { Conversation, GroupMemberRole } from "@/types";
 
 // ── Member profile bottom-sheet ───────────────────────────────────────────────
@@ -335,12 +337,24 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
   const updateGroupName = useChatStore((s) => s.updateGroupName);
   const updateGroupDescription = useChatStore((s) => s.updateGroupDescription);
   const toggleGroupPrivacy = useChatStore((s) => s.toggleGroupPrivacy);
+  const approveRequest = useGroupStore((s) => s.approveRequest);
+  const declineRequest = useGroupStore((s) => s.declineRequest);
+  const simulateIncomingRequest = useGroupStore((s) => s.simulateIncomingRequest);
+  const pendingRequests = useAdminPendingRequests(conversation.id);
 
   const currentUserRole: GroupMemberRole =
     conversation.memberRoles?.[CURRENT_USER_ID] ??
     (conversation.participantIds[0] === CURRENT_USER_ID ? "owner" : "member");
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
+
+  // Simulate a new join request arriving after 7 seconds (admin demo)
+  useEffect(() => {
+    if (!canEdit || !conversation.isPrivate) return;
+    const timer = setTimeout(() => simulateIncomingRequest(conversation.id), 7000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id]);
   const inviteUrl = conversation.inviteCode ? getInviteUrl(conversation.inviteCode) : undefined;
 
   const filteredMembers = memberSearch.trim()
@@ -385,6 +399,67 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
       {/* Scrollable body */}
       <div className="scrollbar-thin flex-1 overflow-y-auto">
+
+        {/* Join Requests — admin/owner only, private groups */}
+        {canEdit && conversation.isPrivate && (
+          <>
+            <div className="px-6 py-4">
+              <div className="mb-3 flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Join Requests
+                </p>
+                {pendingRequests.length > 0 && (
+                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {pendingRequests.length}
+                  </span>
+                )}
+              </div>
+              {pendingRequests.length === 0 ? (
+                <p className="rounded-(--radius-md) border border-dashed border-border py-4 text-center text-sm text-muted-foreground">
+                  No pending requests
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {pendingRequests.map((req) => {
+                    const user = getUserById(req.fromUserId);
+                    if (!user) return null;
+                    return (
+                      <div
+                        key={req.id}
+                        className="flex items-center gap-3 rounded-(--radius-md) border border-border bg-surface p-3"
+                      >
+                        <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            @{user.username} · {formatRelativeTime(req.createdAt)}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => approveRequest(req.id)}
+                            className="rounded-(--radius-sm) bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => declineRequest(req.id)}
+                            className="rounded-(--radius-sm) border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="mx-6 border-t border-border" />
+          </>
+        )}
 
         {/* Name & description */}
         <div className="space-y-4 px-6 py-5">
