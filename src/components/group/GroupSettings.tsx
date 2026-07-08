@@ -4,13 +4,6 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Check,
@@ -24,7 +17,6 @@ import {
   MessageSquare,
   Pencil,
   Phone,
-  Plus,
   Search,
   ShieldCheck,
   UserMinus,
@@ -43,6 +35,224 @@ import { useGroupStore, useAdminPendingRequests } from "@/store/useGroupStore";
 import { useCallStore } from "@/store/useCallStore";
 import type { Conversation, GroupMemberRole } from "@/types";
 
+// ── Add Member panel (full-screen sub-page) ───────────────────────────────────
+
+function AddMemberPanel({
+  conversation,
+  onBack,
+}: {
+  conversation: Conversation;
+  onBack: () => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [invitedIds, setInvitedIds] = useState<string[]>([]);
+  const conversations = useChatStore((s) => s.conversations);
+  const addMember = useChatStore((s) => s.addMemberToConversation);
+  const addSystemMessage = useChatStore((s) => s.addSystemMessage);
+
+  const contacts = conversations
+    .filter((c) => c.type === "dm")
+    .map((c) => c.participantIds.find((id) => id !== CURRENT_USER_ID))
+    .filter((id): id is string => !!id && !conversation.participantIds.includes(id));
+
+  const filtered = search.trim()
+    ? contacts.filter((id) => {
+        const u = getUserById(id);
+        if (!u) return false;
+        const q = search.toLowerCase();
+        return u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q);
+      })
+    : contacts;
+
+  function handleAdd(userId: string) {
+    if (invitedIds.includes(userId)) return;
+    setInvitedIds((prev) => [...prev, userId]);
+    const user = getUserById(userId);
+    const delay = 2500 + Math.random() * 2500;
+    setTimeout(() => {
+      addMember(conversation.id, userId);
+      addSystemMessage(conversation.id, `@${user?.username ?? userId} has just joined`);
+    }, delay);
+  }
+
+  return (
+    <div className="flex h-full flex-col bg-background">
+      {/* Header */}
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back"
+          className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
+        >
+          <ArrowLeft className="size-5" />
+        </button>
+        <h1 className="text-sm font-semibold text-foreground">Add members</h1>
+      </header>
+
+      {/* Persistent search bar */}
+      <div className="border-b border-border px-3 py-3 sm:px-4">
+        <div className="flex items-center gap-2.5 rounded-full bg-surface px-4 py-2.5 ring-1 ring-border/60 focus-within:ring-primary/50">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            autoFocus
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or username…"
+            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Contact list */}
+      <div className="flex-1 overflow-y-auto">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-surface text-muted-foreground">
+              <UserPlus className="size-6" />
+            </span>
+            <p className="text-sm font-medium text-foreground">No contacts found</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {search
+                ? `No results for "${search}"`
+                : "All your contacts are already in this group."}
+            </p>
+          </div>
+        ) : (
+          filtered.map((userId) => {
+            const user = getUserById(userId);
+            if (!user) return null;
+            const added = invitedIds.includes(userId);
+            return (
+              <div
+                key={userId}
+                className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-surface-hover sm:px-4"
+              >
+                <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
+                </div>
+                {added ? (
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-primary">
+                    <Check className="size-3" />
+                    Added
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleAdd(userId)}
+                    className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                  >
+                    Add
+                  </button>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Join Requests panel (full-screen sub-page) ────────────────────────────────
+
+function JoinRequestsPanel({
+  conversationId,
+  onBack,
+}: {
+  conversationId: string;
+  onBack: () => void;
+}) {
+  const pendingRequests = useAdminPendingRequests(conversationId);
+  const approveRequest = useGroupStore((s) => s.approveRequest);
+  const declineRequest = useGroupStore((s) => s.declineRequest);
+
+  return (
+    <div className="flex h-full flex-col bg-background">
+      {/* Header */}
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back"
+          className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
+        >
+          <ArrowLeft className="size-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm font-semibold text-foreground">Join Requests</h1>
+          {pendingRequests.length > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+              {pendingRequests.length}
+            </span>
+          )}
+        </div>
+      </header>
+
+      {/* Request list */}
+      <div className="flex-1 overflow-y-auto">
+        {pendingRequests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-surface text-muted-foreground">
+              <UserPlus className="size-6" />
+            </span>
+            <p className="text-sm font-medium text-foreground">No pending requests</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              When someone requests to join this group, they'll appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="py-2">
+            {pendingRequests.map((req) => {
+              const u = getUserById(req.fromUserId);
+              if (!u) return null;
+              return (
+                <div key={req.id} className="flex items-center gap-3 px-3 py-3 sm:px-4">
+                  <Avatar name={u.name} imageUrl={u.avatarUrl} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{u.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      @{u.username} · {formatRelativeTime(req.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => approveRequest(req.id)}
+                      className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => declineRequest(req.id)}
+                      className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Member profile bottom-sheet ───────────────────────────────────────────────
 
 function MemberSheet({
@@ -60,7 +270,6 @@ function MemberSheet({
 }) {
   const router = useRouter();
   const user = getUserById(userId);
-  const status = usePresence(userId);
   const relation = useRelation(userId);
   const sendPing = useConversationRequestStore((s) => s.sendPing);
   const updateMemberRole = useChatStore((s) => s.updateMemberRole);
@@ -76,11 +285,17 @@ function MemberSheet({
   const canRemove = !isSelf && currentUserRole === "owner";
 
   const dmConv = conversations.find(
-    (c) => c.type === "dm" && c.participantIds.includes(userId) && c.participantIds.includes(CURRENT_USER_ID)
+    (c) =>
+      c.type === "dm" &&
+      c.participantIds.includes(userId) &&
+      c.participantIds.includes(CURRENT_USER_ID)
   );
 
   function handleMessage() {
-    if (dmConv) { router.push(`/chat/${dmConv.id}`); onClose(); }
+    if (dmConv) {
+      router.push(`/chat/${dmConv.id}`);
+      onClose();
+    }
   }
 
   function handleCall(type: "audio" | "video") {
@@ -130,19 +345,35 @@ function MemberSheet({
               <p className="mt-0.5 text-sm text-muted-foreground">@{user.username}</p>
               {role !== "member" && (
                 <span className="mt-2 flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-primary">
-                  {role === "owner" ? <Crown className="size-3" /> : <ShieldCheck className="size-3" />}
+                  {role === "owner" ? (
+                    <Crown className="size-3" />
+                  ) : (
+                    <ShieldCheck className="size-3" />
+                  )}
                   {role === "owner" ? "Owner" : "Admin"}
                 </span>
               )}
             </div>
 
-            {/* Message / Audio / Video buttons — only for other members with a DM */}
+            {/* Message / Audio / Video */}
             {!isSelf && dmConv && (
               <div className="grid grid-cols-3 gap-3 px-6 pb-4">
                 {[
-                  { icon: <MessageSquare className="size-5" />, label: "Message", onClick: handleMessage },
-                  { icon: <Phone className="size-5" />, label: "Audio", onClick: () => handleCall("audio") },
-                  { icon: <Video className="size-5" />, label: "Video", onClick: () => handleCall("video") },
+                  {
+                    icon: <MessageSquare className="size-5" />,
+                    label: "Message",
+                    onClick: handleMessage,
+                  },
+                  {
+                    icon: <Phone className="size-5" />,
+                    label: "Audio",
+                    onClick: () => handleCall("audio"),
+                  },
+                  {
+                    icon: <Video className="size-5" />,
+                    label: "Video",
+                    onClick: () => handleCall("video"),
+                  },
                 ].map(({ icon, label, onClick }) => (
                   <button
                     key={label}
@@ -157,12 +388,15 @@ function MemberSheet({
               </div>
             )}
 
-            {/* Ping row (if no DM and not self) */}
+            {/* Ping row */}
             {!isSelf && !dmConv && relation === "none" && (
               <div className="border-t border-border">
                 <button
                   type="button"
-                  onClick={() => { sendPing(userId); onClose(); }}
+                  onClick={() => {
+                    sendPing(userId);
+                    onClose();
+                  }}
                   className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
                 >
                   <span className="text-lg">👋</span>
@@ -177,27 +411,31 @@ function MemberSheet({
                 {canManage && role === "admin" && currentUserRole === "owner" && (
                   <button
                     type="button"
-                    onClick={() => { updateMemberRole(conversationId, userId, "member"); onClose(); }}
+                    onClick={() => {
+                      updateMemberRole(conversationId, userId, "member");
+                      onClose();
+                    }}
                     className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                   >
                     <span className="flex items-center gap-3">
                       <ShieldCheck className="size-5 shrink-0" />
                       Dismiss as admin
                     </span>
-                    <ShieldCheck className="size-5 shrink-0 opacity-50" />
                   </button>
                 )}
                 {canManage && role === "member" && (
                   <button
                     type="button"
-                    onClick={() => { updateMemberRole(conversationId, userId, "admin"); onClose(); }}
+                    onClick={() => {
+                      updateMemberRole(conversationId, userId, "admin");
+                      onClose();
+                    }}
                     className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
                   >
                     <span className="flex items-center gap-3">
                       <ShieldCheck className="size-5 shrink-0 text-muted-foreground" />
                       Make group admin
                     </span>
-                    <ShieldCheck className="size-5 shrink-0 text-muted-foreground opacity-40" />
                   </button>
                 )}
                 <button
@@ -208,7 +446,6 @@ function MemberSheet({
                     <Info className="size-5 shrink-0 text-muted-foreground" />
                     Info
                   </span>
-                  <Info className="size-5 shrink-0 text-muted-foreground opacity-40" />
                 </button>
                 {canRemove && (
                   <button
@@ -220,13 +457,11 @@ function MemberSheet({
                       <UserMinus className="size-5 shrink-0" />
                       Remove from group
                     </span>
-                    <UserMinus className="size-5 shrink-0 opacity-50" />
                   </button>
                 )}
               </div>
             )}
 
-            {/* Safe area */}
             <div className="h-6" />
           </div>
         </div>,
@@ -235,77 +470,67 @@ function MemberSheet({
     : null;
 }
 
-// ── Invite member dialog ──────────────────────────────────────────────────────
+// ── Member list row ───────────────────────────────────────────────────────────
 
-function InviteMemberDialog({
-  conversation,
-  open,
-  onClose,
+function MemberListRow({
+  userId,
+  role,
+  conversationId,
+  currentUserRole,
 }: {
-  conversation: Conversation;
-  open: boolean;
-  onClose: () => void;
+  userId: string;
+  role: GroupMemberRole;
+  conversationId: string;
+  currentUserRole: GroupMemberRole;
 }) {
-  const conversations = useChatStore((s) => s.conversations);
-  const addMember = useChatStore((s) => s.addMemberToConversation);
-  const addSystemMessage = useChatStore((s) => s.addSystemMessage);
-  const [invitedIds, setInvitedIds] = useState<string[]>([]);
+  const user = getUserById(userId);
+  const status = usePresence(userId);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const contacts = conversations
-    .filter((c) => c.type === "dm")
-    .map((c) => c.participantIds.find((id) => id !== CURRENT_USER_ID))
-    .filter((id): id is string => !!id && !conversation.participantIds.includes(id));
+  if (!user) return null;
 
-  function handleInvite(userId: string) {
-    if (invitedIds.includes(userId)) return;
-    setInvitedIds((prev) => [...prev, userId]);
-    const user = getUserById(userId);
-    const delay = 3000 + Math.random() * 3000;
-    setTimeout(() => {
-      addMember(conversation.id, userId);
-      addSystemMessage(conversation.id, `@${user?.username ?? userId} has just joined`);
-    }, delay);
-  }
+  const isSelf = userId === CURRENT_USER_ID;
+  const isAdmin = role === "owner" || role === "admin";
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-h-[70vh] overflow-hidden flex flex-col gap-0 p-0">
-        <div className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle>Add member</DialogTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Invite someone from your contacts to join this group.
+    <>
+      <button
+        type="button"
+        onClick={() => !isSelf && setSheetOpen(true)}
+        className={cn(
+          "flex w-full items-center gap-3 px-3 py-3 text-left transition-colors sm:px-4 sm:gap-4",
+          !isSelf && "cursor-pointer hover:bg-surface-hover active:bg-surface-hover"
+        )}
+      >
+        <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" presence={status} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground">
+            {isSelf ? "You" : user.name}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {isSelf && isAdmin ? role.charAt(0).toUpperCase() + role.slice(1) : `@${user.username}`}
           </p>
         </div>
-        <div className="flex-1 overflow-y-auto py-2">
-          {contacts.length === 0 ? (
-            <p className="px-6 py-8 text-center text-sm text-muted-foreground">No contacts available.</p>
-          ) : (
-            contacts.map((userId) => {
-              const user = getUserById(userId);
-              if (!user) return null;
-              const invited = invitedIds.includes(userId);
-              return (
-                <div key={userId} className="flex items-center gap-3 px-6 py-2.5">
-                  <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
-                  </div>
-                  {invited ? (
-                    <span className="shrink-0 text-xs font-medium text-primary">Invited</span>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => handleInvite(userId)}>
-                      <Plus className="size-3.5" />
-                      Invite
-                    </Button>
-                  )}
-                </div>
-              );
-            })
+        <div className="flex shrink-0 items-center gap-1">
+          {isAdmin && (
+            <span className="text-xs text-muted-foreground">
+              {role === "owner" ? "Owner" : "Admin"}
+            </span>
           )}
+          {!isSelf && <ChevronRight className="size-4 text-muted-foreground/50" />}
         </div>
-      </DialogContent>
-    </Dialog>
+      </button>
+
+      {sheetOpen && (
+        <MemberSheet
+          userId={userId}
+          role={role}
+          conversationId={conversationId}
+          currentUserRole={currentUserRole}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -317,7 +542,8 @@ interface GroupSettingsProps {
 
 export function GroupSettings({ conversation }: GroupSettingsProps) {
   const router = useRouter();
-  const [inviteOpen, setInviteOpen] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [showJoinRequests, setShowJoinRequests] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState(conversation.name ?? "");
   const [memberSearch, setMemberSearch] = useState("");
@@ -326,8 +552,6 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
   const updateGroupName = useChatStore((s) => s.updateGroupName);
   const toggleGroupPrivacy = useChatStore((s) => s.toggleGroupPrivacy);
-  const approveRequest = useGroupStore((s) => s.approveRequest);
-  const declineRequest = useGroupStore((s) => s.declineRequest);
   const simulateIncomingRequest = useGroupStore((s) => s.simulateIncomingRequest);
   const pendingRequests = useAdminPendingRequests(conversation.id);
 
@@ -337,13 +561,16 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
   const inviteUrl = conversation.inviteCode ? getInviteUrl(conversation.inviteCode) : undefined;
 
-  // Sort members: current user first, then other admins, then regular members
   const sortedMembers = [...conversation.participantIds].sort((a, b) => {
     if (a === CURRENT_USER_ID) return -1;
     if (b === CURRENT_USER_ID) return 1;
-    const ra = conversation.memberRoles?.[a] ?? (a === conversation.participantIds[0] ? "owner" : "member");
-    const rb = conversation.memberRoles?.[b] ?? (b === conversation.participantIds[0] ? "owner" : "member");
-    const weight = (r: GroupMemberRole) => r === "owner" ? 0 : r === "admin" ? 1 : 2;
+    const ra =
+      conversation.memberRoles?.[a] ??
+      (a === conversation.participantIds[0] ? "owner" : "member");
+    const rb =
+      conversation.memberRoles?.[b] ??
+      (b === conversation.participantIds[0] ? "owner" : "member");
+    const weight = (r: GroupMemberRole) => (r === "owner" ? 0 : r === "admin" ? 1 : 2);
     return weight(ra) - weight(rb);
   });
 
@@ -377,10 +604,27 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
     setTimeout(() => setCopied(false), 1800);
   }
 
+  // Sub-panel: Add Members
+  if (showAddMember) {
+    return (
+      <AddMemberPanel conversation={conversation} onBack={() => setShowAddMember(false)} />
+    );
+  }
+
+  // Sub-panel: Join Requests
+  if (showJoinRequests) {
+    return (
+      <JoinRequestsPanel
+        conversationId={conversation.id}
+        onBack={() => setShowJoinRequests(false)}
+      />
+    );
+  }
+
   return (
     <div className="flex h-full flex-col bg-background">
       {/* Top bar */}
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
         <button
           type="button"
           onClick={() => router.push(`/chat/${conversation.id}`)}
@@ -396,8 +640,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
       <div className="scrollbar-thin flex-1 overflow-y-auto">
 
         {/* Hero: avatar + name + subtitle */}
-        <div className="flex flex-col items-center px-6 pb-4 pt-6">
-          {/* 80px avatar */}
+        <div className="flex flex-col items-center px-4 pb-4 pt-6 sm:px-6">
           <span className="relative mb-4 inline-flex size-20 shrink-0 overflow-hidden rounded-full ring-4 ring-background bg-secondary shadow-md">
             {conversation.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -433,8 +676,10 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
                 canEdit && "hover:text-primary"
               )}
             >
-              {conversation.name ?? "Group"}
-              {canEdit && <Pencil className="size-3.5 text-muted-foreground" />}
+              <span className="max-w-[200px] truncate sm:max-w-xs">
+                {conversation.name ?? "Group"}
+              </span>
+              {canEdit && <Pencil className="size-3.5 shrink-0 text-muted-foreground" />}
             </button>
           )}
 
@@ -450,23 +695,25 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
         </div>
 
         {/* Action buttons: Meet / Add / Search */}
-        <div className="grid grid-cols-3 gap-3 px-6 pb-5">
+        <div className="grid grid-cols-3 gap-2 px-4 pb-5 sm:gap-3 sm:px-6">
           {[
             {
-              icon: <Video className="size-6" />,
+              icon: <Video className="size-5 sm:size-6" />,
               label: "Meet",
               onClick: () => router.push(`/meet/${conversation.id}`),
+              disabled: false,
             },
             {
-              icon: <UserPlus className="size-6" />,
+              icon: <UserPlus className="size-5 sm:size-6" />,
               label: "Add",
-              onClick: () => setInviteOpen(true),
+              onClick: () => setShowAddMember(true),
               disabled: !canEdit,
             },
             {
-              icon: <Search className="size-6" />,
+              icon: <Search className="size-5 sm:size-6" />,
               label: "Search",
               onClick: () => setShowSearch((v) => !v),
+              disabled: false,
             },
           ].map(({ icon, label, onClick, disabled }) => (
             <button
@@ -474,7 +721,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               type="button"
               onClick={onClick}
               disabled={disabled}
-              className="flex flex-col items-center gap-1.5 rounded-(--radius-lg) bg-surface py-4 text-foreground transition-colors hover:bg-surface-hover active:scale-95 disabled:opacity-40"
+              className="flex flex-col items-center gap-1.5 rounded-(--radius-lg) bg-surface py-3.5 text-foreground transition-colors hover:bg-surface-hover active:scale-95 disabled:opacity-40 sm:py-4"
             >
               {icon}
               <span className="text-xs font-medium">{label}</span>
@@ -482,71 +729,54 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
           ))}
         </div>
 
-        {/* Join requests — admin/owner, private groups */}
-        {canEdit && conversation.isPrivate && pendingRequests.length > 0 && (
-          <>
-            <div className="border-t border-border px-4 py-4">
-              <div className="mb-3 flex items-center gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Join Requests
+        {/* Join Requests row — admin/owner, private groups */}
+        {canEdit && conversation.isPrivate && (
+          <div className="border-t border-border">
+            <button
+              type="button"
+              onClick={() => setShowJoinRequests(true)}
+              className="flex w-full items-center gap-3 px-3 py-4 text-left transition-colors hover:bg-surface-hover sm:px-4 sm:gap-4"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+                <UserPlus className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">Join Requests</p>
+                <p className="text-xs text-muted-foreground">
+                  {pendingRequests.length > 0
+                    ? `${pendingRequests.length} pending`
+                    : "No pending requests"}
                 </p>
-                <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              </div>
+              {pendingRequests.length > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   {pendingRequests.length}
                 </span>
-              </div>
-              <div className="space-y-2">
-                {pendingRequests.map((req) => {
-                  const u = getUserById(req.fromUserId);
-                  if (!u) return null;
-                  return (
-                    <div
-                      key={req.id}
-                      className="flex items-center gap-3 rounded-(--radius-md) border border-border bg-surface p-3"
-                    >
-                      <Avatar name={u.name} imageUrl={u.avatarUrl} size="md" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">{u.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          @{u.username} · {formatRelativeTime(req.createdAt)}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => approveRequest(req.id)}
-                          className="rounded-(--radius-sm) bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => declineRequest(req.id)}
-                          className="rounded-(--radius-sm) border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </>
+              )}
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground/50" />
+            </button>
+          </div>
         )}
 
         {/* Privacy toggle (owner only) */}
         {currentUserRole === "owner" && (
-          <div className="border-t border-border px-6 py-4">
-            <div className="flex items-center gap-4">
+          <div className="border-t border-border px-3 py-4 sm:px-6">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-                {conversation.isPrivate ? <Lock className="size-5" /> : <Globe className="size-5" />}
+                {conversation.isPrivate ? (
+                  <Lock className="size-5" />
+                ) : (
+                  <Globe className="size-5" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-foreground">
                   {conversation.isPrivate ? "Private group" : "Public group"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {conversation.isPrivate ? "Only invited members can join" : "Anyone with the link can join"}
+                  {conversation.isPrivate
+                    ? "Only invited members can join"
+                    : "Anyone with the link can join"}
                 </p>
               </div>
               <ToggleSwitch
@@ -561,7 +791,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
         {/* Member list */}
         <div className="border-t border-border">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-3">
+          <div className="flex items-center justify-between px-3 py-3 sm:px-6">
             <span className="text-sm font-semibold text-muted-foreground">
               {conversation.participantIds.length} members
             </span>
@@ -577,7 +807,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
           {/* Search input */}
           {showSearch && (
-            <div className="px-4 pb-3">
+            <div className="px-3 pb-3 sm:px-4">
               <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-2 ring-1 ring-border/50">
                 <Search className="size-3.5 shrink-0 text-muted-foreground" />
                 <input
@@ -606,7 +836,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
             <button
               type="button"
               onClick={handleCopy}
-              className="flex w-full items-center gap-4 px-6 py-3.5 text-left transition-colors hover:bg-surface-hover active:bg-surface-hover"
+              className="flex w-full items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-surface-hover active:bg-surface-hover sm:px-4 sm:gap-4"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface">
                 {copied ? (
@@ -617,7 +847,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium text-foreground">
-                  {copied ? "Link copied!" : "Invite via link or QR code"}
+                  {copied ? "Link copied!" : "Invite via link"}
                 </span>
                 {inviteUrl && (
                   <span className="block truncate text-xs text-muted-foreground">{inviteUrl}</span>
@@ -652,79 +882,6 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
         <div className="h-8" />
       </div>
-
-      {canEdit && (
-        <InviteMemberDialog
-          conversation={conversation}
-          open={inviteOpen}
-          onClose={() => setInviteOpen(false)}
-        />
-      )}
     </div>
-  );
-}
-
-// ── Member list row ───────────────────────────────────────────────────────────
-
-function MemberListRow({
-  userId,
-  role,
-  conversationId,
-  currentUserRole,
-}: {
-  userId: string;
-  role: GroupMemberRole;
-  conversationId: string;
-  currentUserRole: GroupMemberRole;
-}) {
-  const user = getUserById(userId);
-  const status = usePresence(userId);
-  const [sheetOpen, setSheetOpen] = useState(false);
-
-  if (!user) return null;
-
-  const isSelf = userId === CURRENT_USER_ID;
-  const isAdmin = role === "owner" || role === "admin";
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => !isSelf && setSheetOpen(true)}
-        className={cn(
-          "flex w-full items-center gap-4 px-6 py-3.5 text-left transition-colors",
-          !isSelf && "cursor-pointer hover:bg-surface-hover active:bg-surface-hover"
-        )}
-      >
-        <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" presence={status} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-foreground">
-            {isSelf ? "You" : user.name}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {isSelf && isAdmin ? role.charAt(0).toUpperCase() + role.slice(1) : `@${user.username}`}
-          </p>
-        </div>
-        {/* Right side: admin label + chevron */}
-        <div className="flex shrink-0 items-center gap-1">
-          {isAdmin && (
-            <span className="text-xs text-muted-foreground">
-              {role === "owner" ? "Owner" : "Admin"}
-            </span>
-          )}
-          {!isSelf && <ChevronRight className="size-4 text-muted-foreground/50" />}
-        </div>
-      </button>
-
-      {sheetOpen && (
-        <MemberSheet
-          userId={userId}
-          role={role}
-          conversationId={conversationId}
-          currentUserRole={currentUserRole}
-          onClose={() => setSheetOpen(false)}
-        />
-      )}
-    </>
   );
 }
