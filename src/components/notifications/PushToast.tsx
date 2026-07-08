@@ -7,6 +7,7 @@ import { X } from "@/components/ui/icons";
 import { TYPE_ICON, TYPE_COLOR } from "./NotificationItem";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useConversationRequestStore } from "@/store/useConversationRequestStore";
+import { useGroupStore } from "@/store/useGroupStore";
 import { useUIStore } from "@/store/useUIStore";
 import type { NotificationItem as NotificationItemType } from "@/types";
 
@@ -19,8 +20,11 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
   const openModal = useUIStore((s) => s.openModal);
   const acceptPing = useConversationRequestStore((s) => s.acceptPing);
   const declinePing = useConversationRequestStore((s) => s.declinePing);
+  const approveRequest = useGroupStore((s) => s.approveRequest);
+  const declineRequest = useGroupStore((s) => s.declineRequest);
   const Icon = TYPE_ICON[notification.type];
   const isPingWithAction = notification.type === "ping" && !!notification.actionId;
+  const isJoinRequest = notification.type === "join-request" && !!notification.actionId;
 
   useEffect(() => {
     const timer = setTimeout(() => dismissToast(notification.id), AUTO_DISMISS_MS);
@@ -50,6 +54,20 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
   function handleDecline() {
     if (!notification.actionId) return;
     declinePing(notification.actionId);
+    markRead(notification.id);
+    dismissToast(notification.id);
+  }
+
+  function handleApproveJoin() {
+    if (!notification.actionId) return;
+    approveRequest(notification.actionId);
+    markRead(notification.id);
+    dismissToast(notification.id);
+  }
+
+  function handleDeclineJoin() {
+    if (!notification.actionId) return;
+    declineRequest(notification.actionId);
     markRead(notification.id);
     dismissToast(notification.id);
   }
@@ -99,6 +117,24 @@ function PushToastCard({ notification }: { notification: NotificationItemType })
           <button
             type="button"
             onClick={handleDecline}
+            className="flex-1 rounded-(--radius-md) border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Decline
+          </button>
+        </div>
+      )}
+      {isJoinRequest && (
+        <div className="flex gap-2 pl-12">
+          <button
+            type="button"
+            onClick={handleApproveJoin}
+            className="flex-1 rounded-(--radius-md) bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            onClick={handleDeclineJoin}
             className="flex-1 rounded-(--radius-md) border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Decline

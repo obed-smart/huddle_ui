@@ -8,6 +8,7 @@ export const TYPE_ICON = {
   mention: AtSign,
   system: Sparkles,
   ping: UserPlus,
+  "join-request": UserPlus,
 } as const;
 
 export const TYPE_COLOR = {
@@ -16,6 +17,7 @@ export const TYPE_COLOR = {
   mention: "bg-warning-muted text-amber-600",
   system: "bg-secondary text-primary",
   ping: "bg-secondary text-primary",
+  "join-request": "bg-primary/10 text-primary",
 } as const;
 
 interface NotificationItemProps {
