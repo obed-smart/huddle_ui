@@ -72,12 +72,12 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
         )}
       </div>
 
-      {/* Pin indicator — visible when pinned; hover-reveal on desktop */}
+      {/* Pin indicator — always visible at 60% opacity, fully visible when pinned or on hover */}
       {onTogglePin && (
         <div
           className={cn(
             "absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-slate-900/70 text-white transition-opacity",
-            isPinned ? "opacity-100" : "opacity-0 group-hover/tile:opacity-100"
+            isPinned ? "opacity-100 ring-1 ring-primary" : "opacity-60 group-hover/tile:opacity-100"
           )}
           aria-hidden
         >
