@@ -82,6 +82,7 @@ export interface CallParticipant {
   muted: boolean;
   cameraOff: boolean;
   isSpeaking?: boolean;
+  callStatus?: "calling" | "active";
 }
 
 export interface CallSession {

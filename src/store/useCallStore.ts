@@ -197,8 +197,12 @@ export const useCallStore = create<CallState>()((set, get) => {
     },
 
     addParticipantById: (userId: string) => {
+      const callId = get().activeCall?.id;
+      if (!callId) return;
+
+      // Add the participant in "calling" state immediately so the tile is visible
       set((state) => {
-        if (!state.activeCall) return state;
+        if (!state.activeCall || state.activeCall.id !== callId) return state;
         const already = state.activeCall.participants.some((p) => p.userId === userId);
         if (already) return state;
         return {
@@ -206,11 +210,46 @@ export const useCallStore = create<CallState>()((set, get) => {
             ...state.activeCall,
             participants: [
               ...state.activeCall.participants,
-              { userId, muted: false, cameraOff: false },
+              { userId, muted: false, cameraOff: false, callStatus: "calling" },
             ],
           },
         };
       });
+
+      // After ringing delay, either connect or quietly remove (declined)
+      const ringDelay = 2000 + Math.random() * 3000;
+      setTimeout(() => {
+        const current = get().activeCall;
+        if (!current || current.id !== callId) return;
+        const participant = current.participants.find((p) => p.userId === userId);
+        if (!participant || participant.callStatus !== "calling") return;
+
+        if (Math.random() < 0.88) {
+          // Accepted — mark as active
+          set((state) => {
+            if (!state.activeCall || state.activeCall.id !== callId) return state;
+            return {
+              activeCall: {
+                ...state.activeCall,
+                participants: state.activeCall.participants.map((p) =>
+                  p.userId === userId ? { ...p, callStatus: "active" } : p
+                ),
+              },
+            };
+          });
+        } else {
+          // Declined — remove from participants
+          set((state) => {
+            if (!state.activeCall || state.activeCall.id !== callId) return state;
+            return {
+              activeCall: {
+                ...state.activeCall,
+                participants: state.activeCall.participants.filter((p) => p.userId !== userId),
+              },
+            };
+          });
+        }
+      }, ringDelay);
     },
   };
 });

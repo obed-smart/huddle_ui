@@ -108,7 +108,12 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
             </div>
           </button>
           {otherId && (
-            <DMInfoPanel userId={otherId} open={dmInfoOpen} onOpenChange={setDmInfoOpen} />
+            <DMInfoPanel
+              userId={otherId}
+              conversationId={conversation.id}
+              open={dmInfoOpen}
+              onOpenChange={setDmInfoOpen}
+            />
           )}
         </>
       )}

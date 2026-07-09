@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -35,9 +35,9 @@ import { useGroupStore, useAdminPendingRequests } from "@/store/useGroupStore";
 import { useCallStore } from "@/store/useCallStore";
 import type { Conversation, GroupMemberRole } from "@/types";
 
-// ── Add Member panel (full-screen sub-page) ───────────────────────────────────
+// ── Invite Members panel (full-screen sub-page) ───────────────────────────────
 
-function AddMemberPanel({
+function InviteMembersPanel({
   conversation,
   onBack,
 }: {
@@ -64,35 +64,35 @@ function AddMemberPanel({
       })
     : contacts;
 
-  function handleAdd(userId: string) {
+  function handleInvite(userId: string) {
     if (invitedIds.includes(userId)) return;
     setInvitedIds((prev) => [...prev, userId]);
     const user = getUserById(userId);
     const delay = 2500 + Math.random() * 2500;
     setTimeout(() => {
       addMember(conversation.id, userId);
-      addSystemMessage(conversation.id, `@${user?.username ?? userId} has just joined`);
+      addSystemMessage(conversation.id, `@${user?.username ?? userId} joined the group`);
     }, delay);
   }
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full w-full flex-col bg-background">
       {/* Header */}
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <button
           type="button"
           onClick={onBack}
           aria-label="Back"
-          className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
         >
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="text-sm font-semibold text-foreground">Add members</h1>
+        <h1 className="text-sm font-semibold text-foreground">Invite members</h1>
       </header>
 
-      {/* Persistent search bar */}
-      <div className="border-b border-border px-3 py-3 sm:px-4">
-        <div className="flex items-center gap-2.5 rounded-full bg-surface px-4 py-2.5 ring-1 ring-border/60 focus-within:ring-primary/50">
+      {/* Search bar */}
+      <div className="shrink-0 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2.5 rounded-full bg-surface px-4 py-2.5 ring-1 ring-border/60 focus-within:ring-2 focus-within:ring-primary/40">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
             autoFocus
@@ -106,7 +106,7 @@ function AddMemberPanel({
               type="button"
               onClick={() => setSearch("")}
               aria-label="Clear"
-              className="shrink-0 text-muted-foreground hover:text-foreground"
+              className="shrink-0 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
             </button>
@@ -115,7 +115,7 @@ function AddMemberPanel({
       </div>
 
       {/* Contact list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-surface text-muted-foreground">
@@ -132,29 +132,29 @@ function AddMemberPanel({
           filtered.map((userId) => {
             const user = getUserById(userId);
             if (!user) return null;
-            const added = invitedIds.includes(userId);
+            const invited = invitedIds.includes(userId);
             return (
               <div
                 key={userId}
-                className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-surface-hover sm:px-4"
+                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-hover"
               >
                 <Avatar name={user.name} imageUrl={user.avatarUrl} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
                   <p className="truncate text-xs text-muted-foreground">@{user.username}</p>
                 </div>
-                {added ? (
+                {invited ? (
                   <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-primary">
                     <Check className="size-3" />
-                    Added
+                    Invited
                   </span>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => handleAdd(userId)}
-                    className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                    onClick={() => handleInvite(userId)}
+                    className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover active:scale-95"
                   >
-                    Add
+                    Invite
                   </button>
                 )}
               </div>
@@ -180,18 +180,17 @@ function JoinRequestsPanel({
   const declineRequest = useGroupStore((s) => s.declineRequest);
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      {/* Header */}
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
+    <div className="flex h-full w-full flex-col bg-background">
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <button
           type="button"
           onClick={onBack}
           aria-label="Back"
-          className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
         >
           <ArrowLeft className="size-5" />
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <h1 className="text-sm font-semibold text-foreground">Join Requests</h1>
           {pendingRequests.length > 0 && (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
@@ -201,8 +200,7 @@ function JoinRequestsPanel({
         </div>
       </header>
 
-      {/* Request list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {pendingRequests.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-surface text-muted-foreground">
@@ -210,7 +208,7 @@ function JoinRequestsPanel({
             </span>
             <p className="text-sm font-medium text-foreground">No pending requests</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              When someone requests to join this group, they'll appear here.
+              When someone requests to join this group, they&apos;ll appear here.
             </p>
           </div>
         ) : (
@@ -219,7 +217,7 @@ function JoinRequestsPanel({
               const u = getUserById(req.fromUserId);
               if (!u) return null;
               return (
-                <div key={req.id} className="flex items-center gap-3 px-3 py-3 sm:px-4">
+                <div key={req.id} className="flex items-center gap-3 px-4 py-3">
                   <Avatar name={u.name} imageUrl={u.avatarUrl} size="md" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{u.name}</p>
@@ -319,7 +317,6 @@ function MemberSheet({
             className="relative w-full animate-(--animate-sheet-up) rounded-t-3xl bg-background shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close */}
             <button
               type="button"
               onClick={onClose}
@@ -329,10 +326,9 @@ function MemberSheet({
               <X className="size-4" />
             </button>
 
-            {/* Avatar + name */}
             <div className="flex flex-col items-center px-6 pb-5 pt-8">
               <span className="relative mb-4 inline-flex size-20 shrink-0">
-                <span className="inline-flex size-full items-center justify-center overflow-hidden rounded-full ring-4 ring-background bg-secondary">
+                <span className="inline-flex size-full items-center justify-center overflow-hidden rounded-full bg-secondary ring-4 ring-background">
                   {user.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={user.avatarUrl} alt="" className="size-full object-cover" />
@@ -355,25 +351,12 @@ function MemberSheet({
               )}
             </div>
 
-            {/* Message / Audio / Video */}
             {!isSelf && dmConv && (
               <div className="grid grid-cols-3 gap-3 px-6 pb-4">
                 {[
-                  {
-                    icon: <MessageSquare className="size-5" />,
-                    label: "Message",
-                    onClick: handleMessage,
-                  },
-                  {
-                    icon: <Phone className="size-5" />,
-                    label: "Audio",
-                    onClick: () => handleCall("audio"),
-                  },
-                  {
-                    icon: <Video className="size-5" />,
-                    label: "Video",
-                    onClick: () => handleCall("video"),
-                  },
+                  { icon: <MessageSquare className="size-5" />, label: "Message", onClick: handleMessage },
+                  { icon: <Phone className="size-5" />, label: "Audio", onClick: () => handleCall("audio") },
+                  { icon: <Video className="size-5" />, label: "Video", onClick: () => handleCall("video") },
                 ].map(({ icon, label, onClick }) => (
                   <button
                     key={label}
@@ -388,15 +371,11 @@ function MemberSheet({
               </div>
             )}
 
-            {/* Ping row */}
             {!isSelf && !dmConv && relation === "none" && (
               <div className="border-t border-border">
                 <button
                   type="button"
-                  onClick={() => {
-                    sendPing(userId);
-                    onClose();
-                  }}
+                  onClick={() => { sendPing(userId); onClose(); }}
                   className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
                 >
                   <span className="text-lg">👋</span>
@@ -405,58 +384,43 @@ function MemberSheet({
               </div>
             )}
 
-            {/* Management actions */}
             {!isSelf && (
               <div className="border-t border-border">
                 {canManage && role === "admin" && currentUserRole === "owner" && (
                   <button
                     type="button"
-                    onClick={() => {
-                      updateMemberRole(conversationId, userId, "member");
-                      onClose();
-                    }}
-                    className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+                    onClick={() => { updateMemberRole(conversationId, userId, "member"); onClose(); }}
+                    className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                   >
-                    <span className="flex items-center gap-3">
-                      <ShieldCheck className="size-5 shrink-0" />
-                      Dismiss as admin
-                    </span>
+                    <ShieldCheck className="size-5 shrink-0" />
+                    Dismiss as admin
                   </button>
                 )}
                 {canManage && role === "member" && (
                   <button
                     type="button"
-                    onClick={() => {
-                      updateMemberRole(conversationId, userId, "admin");
-                      onClose();
-                    }}
-                    className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+                    onClick={() => { updateMemberRole(conversationId, userId, "admin"); onClose(); }}
+                    className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
                   >
-                    <span className="flex items-center gap-3">
-                      <ShieldCheck className="size-5 shrink-0 text-muted-foreground" />
-                      Make group admin
-                    </span>
+                    <ShieldCheck className="size-5 shrink-0 text-muted-foreground" />
+                    Make group admin
                   </button>
                 )}
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+                  className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
                 >
-                  <span className="flex items-center gap-3">
-                    <Info className="size-5 shrink-0 text-muted-foreground" />
-                    Info
-                  </span>
+                  <Info className="size-5 shrink-0 text-muted-foreground" />
+                  Info
                 </button>
                 {canRemove && (
                   <button
                     type="button"
                     onClick={handleRemove}
-                    className="flex w-full items-center justify-between px-6 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+                    className="flex w-full items-center gap-3 px-6 py-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                   >
-                    <span className="flex items-center gap-3">
-                      <UserMinus className="size-5 shrink-0" />
-                      Remove from group
-                    </span>
+                    <UserMinus className="size-5 shrink-0" />
+                    Remove from group
                   </button>
                 )}
               </div>
@@ -498,7 +462,7 @@ function MemberListRow({
         type="button"
         onClick={() => !isSelf && setSheetOpen(true)}
         className={cn(
-          "flex w-full items-center gap-3 px-3 py-3 text-left transition-colors sm:px-4 sm:gap-4",
+          "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
           !isSelf && "cursor-pointer hover:bg-surface-hover active:bg-surface-hover"
         )}
       >
@@ -511,7 +475,7 @@ function MemberListRow({
             {isSelf && isAdmin ? role.charAt(0).toUpperCase() + role.slice(1) : `@${user.username}`}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1.5">
           {isAdmin && (
             <span className="text-xs text-muted-foreground">
               {role === "owner" ? "Owner" : "Admin"}
@@ -542,15 +506,19 @@ interface GroupSettingsProps {
 
 export function GroupSettings({ conversation }: GroupSettingsProps) {
   const router = useRouter();
-  const [showAddMember, setShowAddMember] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const [showJoinRequests, setShowJoinRequests] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState(conversation.name ?? "");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [desc, setDesc] = useState(conversation.description ?? "");
   const [memberSearch, setMemberSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [copied, setCopied] = useState(false);
+  const descRef = useRef<HTMLTextAreaElement>(null);
 
   const updateGroupName = useChatStore((s) => s.updateGroupName);
+  const updateGroupDescription = useChatStore((s) => s.updateGroupDescription);
   const toggleGroupPrivacy = useChatStore((s) => s.toggleGroupPrivacy);
   const simulateIncomingRequest = useGroupStore((s) => s.simulateIncomingRequest);
   const pendingRequests = useAdminPendingRequests(conversation.id);
@@ -583,7 +551,6 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
       })
     : sortedMembers;
 
-  // Simulate incoming request after 7s when admin opens a private group
   useEffect(() => {
     if (!canEdit || !conversation.isPrivate) return;
     const timer = setTimeout(() => simulateIncomingRequest(conversation.id), 7000);
@@ -591,10 +558,25 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation.id]);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (editingDesc && descRef.current) {
+      descRef.current.style.height = "auto";
+      descRef.current.style.height = descRef.current.scrollHeight + "px";
+      descRef.current.focus();
+    }
+  }, [editingDesc]);
+
   function handleSaveName() {
     const trimmed = name.trim();
     if (trimmed && trimmed !== conversation.name) updateGroupName(conversation.id, trimmed);
     setEditingName(false);
+  }
+
+  function handleSaveDesc() {
+    const trimmed = desc.trim();
+    updateGroupDescription(conversation.id, trimmed);
+    setEditingDesc(false);
   }
 
   function handleCopy() {
@@ -604,11 +586,9 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
     setTimeout(() => setCopied(false), 1800);
   }
 
-  // Sub-panel: Add Members
-  if (showAddMember) {
-    return (
-      <AddMemberPanel conversation={conversation} onBack={() => setShowAddMember(false)} />
-    );
+  // Sub-panel: Invite Members
+  if (showInvite) {
+    return <InviteMembersPanel conversation={conversation} onBack={() => setShowInvite(false)} />;
   }
 
   // Sub-panel: Join Requests
@@ -622,14 +602,14 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       {/* Top bar */}
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <button
           type="button"
           onClick={() => router.push(`/chat/${conversation.id}`)}
           aria-label="Back"
-          className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover"
         >
           <ArrowLeft className="size-5" />
         </button>
@@ -637,33 +617,34 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
       </header>
 
       {/* Scrollable body */}
-      <div className="scrollbar-thin flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
 
-        {/* Hero: avatar + name + subtitle */}
-        <div className="flex flex-col items-center px-4 pb-4 pt-6 sm:px-6">
-          <span className="relative mb-4 inline-flex size-20 shrink-0 overflow-hidden rounded-full ring-4 ring-background bg-secondary shadow-md">
+        {/* ── Hero ── */}
+        <div className="flex flex-col items-center px-4 pb-5 pt-6">
+          {/* Avatar */}
+          <span className="relative mb-4 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary shadow-md ring-4 ring-background">
             {conversation.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={conversation.avatarUrl} alt="" className="size-full object-cover" />
             ) : (
-              <span className="flex size-full items-center justify-center text-3xl font-bold text-primary">
+              <span className="text-3xl font-bold text-primary">
                 {(conversation.name ?? "G")[0].toUpperCase()}
               </span>
             )}
           </span>
 
-          {/* Name (editable for admin) */}
+          {/* Group name — inline edit */}
           {editingName ? (
-            <div className="flex w-full max-w-xs items-center gap-2">
+            <div className="flex w-full max-w-[280px] items-center gap-2">
               <input
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onBlur={handleSaveName}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-                className="flex-1 border-b-2 border-primary bg-transparent py-1 text-center text-xl font-bold text-foreground outline-none"
+                className="min-w-0 flex-1 border-b-2 border-primary bg-transparent py-1 text-center text-xl font-bold text-foreground outline-none"
               />
-              <button type="button" onClick={handleSaveName} className="text-primary">
+              <button type="button" onClick={handleSaveName} className="shrink-0 text-primary">
                 <Check className="size-5" />
               </button>
             </div>
@@ -672,13 +653,11 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               type="button"
               onClick={() => canEdit && setEditingName(true)}
               className={cn(
-                "flex items-center gap-1.5 text-xl font-bold text-foreground",
+                "flex max-w-full items-center gap-1.5 text-xl font-bold text-foreground",
                 canEdit && "hover:text-primary"
               )}
             >
-              <span className="max-w-[200px] truncate sm:max-w-xs">
-                {conversation.name ?? "Group"}
-              </span>
+              <span className="truncate">{conversation.name ?? "Group"}</span>
               {canEdit && <Pencil className="size-3.5 shrink-0 text-muted-foreground" />}
             </button>
           )}
@@ -687,30 +666,92 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
             Group · {conversation.participantIds.length} members
           </p>
 
-          {conversation.description && (
-            <p className="mt-2 max-w-xs text-center text-sm text-muted-foreground line-clamp-2">
-              {conversation.description}
-            </p>
-          )}
+          {/* Description — inline edit */}
+          <div className="mt-3 w-full max-w-xs">
+            {editingDesc ? (
+              <div className="flex w-full flex-col gap-2">
+                <textarea
+                  ref={descRef}
+                  value={desc}
+                  onChange={(e) => {
+                    setDesc(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                  onBlur={handleSaveDesc}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSaveDesc();
+                    }
+                    if (e.key === "Escape") {
+                      setDesc(conversation.description ?? "");
+                      setEditingDesc(false);
+                    }
+                  }}
+                  placeholder="Add a group description…"
+                  rows={2}
+                  className="w-full resize-none rounded-(--radius-md) border border-primary/50 bg-surface px-3 py-2 text-center text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setDesc(conversation.description ?? ""); setEditingDesc(false); }}
+                    className="rounded-(--radius-sm) border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-surface-hover"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveDesc}
+                    className="rounded-(--radius-sm) bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => canEdit && setEditingDesc(true)}
+                className={cn(
+                  "w-full rounded-(--radius-md) px-2 py-1.5 text-center text-sm transition-colors",
+                  conversation.description
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/50",
+                  canEdit && "hover:bg-surface-hover"
+                )}
+              >
+                {conversation.description ? (
+                  <span className="line-clamp-3">{conversation.description}</span>
+                ) : canEdit ? (
+                  <span className="flex items-center justify-center gap-1.5">
+                    <Pencil className="size-3 opacity-60" />
+                    Add a description
+                  </span>
+                ) : null}
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Action buttons: Meet / Add / Search */}
-        <div className="grid grid-cols-3 gap-2 px-4 pb-5 sm:gap-3 sm:px-6">
+        {/* ── Action buttons: Meet / Invite / Search ── */}
+        <div className="grid grid-cols-3 gap-2 px-4 pb-5">
           {[
             {
-              icon: <Video className="size-5 sm:size-6" />,
+              icon: <Video className="size-5" />,
               label: "Meet",
               onClick: () => router.push(`/meet/${conversation.id}`),
               disabled: false,
             },
             {
-              icon: <UserPlus className="size-5 sm:size-6" />,
-              label: "Add",
-              onClick: () => setShowAddMember(true),
+              icon: <UserPlus className="size-5" />,
+              label: "Invite",
+              onClick: () => setShowInvite(true),
               disabled: !canEdit,
             },
             {
-              icon: <Search className="size-5 sm:size-6" />,
+              icon: <Search className="size-5" />,
               label: "Search",
               onClick: () => setShowSearch((v) => !v),
               disabled: false,
@@ -721,21 +762,21 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
               type="button"
               onClick={onClick}
               disabled={disabled}
-              className="flex flex-col items-center gap-1.5 rounded-(--radius-lg) bg-surface py-3.5 text-foreground transition-colors hover:bg-surface-hover active:scale-95 disabled:opacity-40 sm:py-4"
+              className="flex flex-col items-center gap-1.5 rounded-(--radius-lg) bg-secondary/60 py-4 text-foreground transition-colors hover:bg-secondary active:scale-95 disabled:opacity-40"
             >
-              {icon}
+              <span className="text-primary">{icon}</span>
               <span className="text-xs font-medium">{label}</span>
             </button>
           ))}
         </div>
 
-        {/* Join Requests row — admin/owner, private groups */}
+        {/* ── Join Requests row ── */}
         {canEdit && conversation.isPrivate && (
           <div className="border-t border-border">
             <button
               type="button"
               onClick={() => setShowJoinRequests(true)}
-              className="flex w-full items-center gap-3 px-3 py-4 text-left transition-colors hover:bg-surface-hover sm:px-4 sm:gap-4"
+              className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-surface-hover"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
                 <UserPlus className="size-5" />
@@ -749,7 +790,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
                 </p>
               </div>
               {pendingRequests.length > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   {pendingRequests.length}
                 </span>
               )}
@@ -758,40 +799,38 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
           </div>
         )}
 
-        {/* Privacy toggle (owner only) */}
+        {/* ── Privacy toggle (owner only) ── */}
         {currentUserRole === "owner" && (
-          <div className="border-t border-border px-3 py-4 sm:px-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-                {conversation.isPrivate ? (
-                  <Lock className="size-5" />
-                ) : (
-                  <Globe className="size-5" />
-                )}
-              </div>
+          <div className="border-t border-border px-4 py-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+                {conversation.isPrivate ? <Lock className="size-5" /> : <Globe className="size-5" />}
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-foreground">
                   {conversation.isPrivate ? "Private group" : "Public group"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-xs text-muted-foreground">
                   {conversation.isPrivate
                     ? "Only invited members can join"
                     : "Anyone with the link can join"}
                 </p>
               </div>
-              <ToggleSwitch
-                checked={conversation.isPrivate ?? false}
-                onCheckedChange={() => toggleGroupPrivacy(conversation.id)}
-                label={conversation.isPrivate ? "Make public" : "Make private"}
-              />
+              <div className="shrink-0">
+                <ToggleSwitch
+                  checked={conversation.isPrivate ?? false}
+                  onCheckedChange={() => toggleGroupPrivacy(conversation.id)}
+                  label={conversation.isPrivate ? "Make public" : "Make private"}
+                />
+              </div>
             </div>
           </div>
         )}
 
-        {/* Member list */}
+        {/* ── Member list ── */}
         <div className="border-t border-border">
           {/* Header */}
-          <div className="flex items-center justify-between px-3 py-3 sm:px-6">
+          <div className="flex items-center justify-between px-4 py-3">
             <span className="text-sm font-semibold text-muted-foreground">
               {conversation.participantIds.length} members
             </span>
@@ -807,8 +846,8 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
 
           {/* Search input */}
           {showSearch && (
-            <div className="px-3 pb-3 sm:px-4">
-              <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-2 ring-1 ring-border/50">
+            <div className="px-4 pb-3">
+              <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-2 ring-1 ring-border/60">
                 <Search className="size-3.5 shrink-0 text-muted-foreground" />
                 <input
                   autoFocus
@@ -821,7 +860,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
                   <button
                     type="button"
                     onClick={() => setMemberSearch("")}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
                     aria-label="Clear"
                   >
                     <X className="size-3.5" />
@@ -831,12 +870,12 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
             </div>
           )}
 
-          {/* Invite via link row — admin only */}
+          {/* Invite via link */}
           {canEdit && (
             <button
               type="button"
               onClick={handleCopy}
-              className="flex w-full items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-surface-hover active:bg-surface-hover sm:px-4 sm:gap-4"
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-hover"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface">
                 {copied ? (
@@ -880,7 +919,7 @@ export function GroupSettings({ conversation }: GroupSettingsProps) {
           )}
         </div>
 
-        <div className="h-8" />
+        <div className="h-10" />
       </div>
     </div>
   );

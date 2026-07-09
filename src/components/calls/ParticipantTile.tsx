@@ -28,6 +28,7 @@ function SpeakingWaveform() {
 export function ParticipantTile({ participant, className, isPinned, onTogglePin }: ParticipantTileProps) {
   const user = getUserById(participant.userId);
   const name = participant.userId === CURRENT_USER_ID ? "You" : user?.name ?? "Unknown";
+  const isCalling = participant.callStatus === "calling";
 
   return (
     <div
@@ -36,10 +37,27 @@ export function ParticipantTile({ participant, className, isPinned, onTogglePin 
         "group/tile relative flex items-center justify-center overflow-hidden rounded-(--radius-lg) bg-gradient-to-b from-slate-700 to-slate-900",
         onTogglePin && "cursor-pointer active:scale-[0.98] transition-transform",
         participant.isSpeaking && "ring-2 ring-emerald-400 ring-offset-1 ring-offset-slate-900",
+        isCalling && "opacity-70",
         className
       )}
     >
       <Avatar name={user?.name ?? "Unknown"} size="lg" />
+
+      {/* Calling overlay */}
+      {isCalling && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40">
+          <span className="flex gap-1">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="size-2 rounded-full bg-white/80 animate-bounce"
+                style={{ animationDelay: `${i * 150}ms` }}
+              />
+            ))}
+          </span>
+          <span className="text-[11px] font-medium text-white/90">Calling…</span>
+        </div>
+      )}
 
       <div className="absolute left-2 top-2 flex items-center gap-1">
         {participant.role === "host" && (
