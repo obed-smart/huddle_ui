@@ -53,16 +53,23 @@ export function MeetGrid({ participants, pinnedUserId, onPinParticipant, layoutM
     );
   }
 
-  // Grid: all participants equal size, tight gaps for a clean look
+  // Grid: fixed-height rows for 5+ participants (scroll to see more); fills height for ≤4
+  const count = participants.length;
+  const scrollable = count > 4;
+
   return (
     <div
-      className={cn("grid h-full content-center gap-2 p-2 md:p-3", getParticipantGridCols(participants.length))}
+      className={cn(
+        "p-2 md:p-3",
+        getParticipantGridCols(count),
+        scrollable ? "grid overflow-y-auto gap-2" : "grid h-full gap-2"
+      )}
+      style={{ gridAutoRows: scrollable ? "calc(50vh - 80px)" : "1fr" }}
     >
       {participants.map((participant) => (
         <ParticipantTile
           key={participant.userId}
           participant={participant}
-          className="aspect-video"
           onTogglePin={onPinParticipant ? () => onPinParticipant(participant.userId) : undefined}
         />
       ))}

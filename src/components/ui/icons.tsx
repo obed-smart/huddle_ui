@@ -89,4 +89,6 @@ export {
   Pause,
   ArrowDown,
   UserMinus,
+  Expand,
+  Shrink,
 } from "lucide-react";

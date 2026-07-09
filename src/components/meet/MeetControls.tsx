@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconButton } from "@/components/ui/icon-button";
 import {
+  Expand,
   Hand,
   LayoutGrid,
   Maximize2,
@@ -12,6 +14,7 @@ import {
   PhoneOff,
   ScreenShare,
   ScreenShareOff,
+  Shrink,
   Users,
   Video,
   VideoOff,
@@ -39,6 +42,28 @@ export function MeetControls() {
   const layoutMode = useMeetStore((s) => s.layoutMode);
   const setLayoutMode = useMeetStore((s) => s.setLayoutMode);
 
+  const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
+
+  useEffect(() => {
+    function onFsChange() {
+      setIsBrowserFullscreen(!!document.fullscreenElement);
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
+  async function toggleBrowserFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Browser doesn't support fullscreen or it was denied
+    }
+  }
+
   function handleLeave() {
     const meet = useMeetStore.getState().activeMeet;
     const destination = meet && meet.conversationId !== "instant"
@@ -55,7 +80,7 @@ export function MeetControls() {
   return (
     <div className="flex shrink-0 justify-center px-4 pb-5 pt-3 md:pb-6">
       <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 shadow-(--shadow-sm) md:gap-2.5">
-        {/* Mic — red when muted (safety-critical, must be obvious) */}
+        {/* Mic — red when muted */}
         <IconButton
           label={isMuted ? "Unmute" : "Mute"}
           size="lg"
@@ -115,7 +140,7 @@ export function MeetControls() {
           <Users />
         </IconButton>
 
-        {/* Layout mode — primary when not default grid */}
+        {/* Layout mode cycle: grid → speaker → fullscreen */}
         <IconButton
           label={
             layoutMode === "grid" ? "Switch to speaker view"
@@ -131,6 +156,18 @@ export function MeetControls() {
             : "bg-muted text-foreground hover:bg-surface-hover"}
         >
           {layoutMode === "grid" ? <LayoutGrid /> : layoutMode === "speaker" ? <Maximize2 /> : <Minimize2 />}
+        </IconButton>
+
+        {/* Browser fullscreen — hides browser chrome */}
+        <IconButton
+          label={isBrowserFullscreen ? "Exit browser fullscreen" : "Browser fullscreen"}
+          size="lg"
+          onClick={toggleBrowserFullscreen}
+          className={isBrowserFullscreen
+            ? "bg-primary/10 text-primary ring-1 ring-primary/25 hover:bg-primary/18"
+            : "bg-muted text-foreground hover:bg-surface-hover"}
+        >
+          {isBrowserFullscreen ? <Shrink /> : <Expand />}
         </IconButton>
 
         <div className="mx-1 h-8 w-px bg-border" />

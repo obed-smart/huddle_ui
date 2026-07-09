@@ -16,7 +16,8 @@ import { getUserById, CURRENT_USER_ID } from "@/lib/seed-data";
 
 const DEV_REACTION_EMOJIS = ["👍", "❤️", "🎉", "😂", "🔥", "👏"];
 const UI_AUTO_HIDE_MS = 4000;
-const TOAST_DURATION_MS = 4000;
+const CHAT_TOAST_DURATION_MS = 4000;
+const PRESENCE_TOAST_DURATION_MS = 3000;
 
 const TABS = [
   { id: "participants", label: "Participants", icon: Users },
@@ -28,6 +29,11 @@ interface ChatToast {
   id: string;
   senderName: string;
   text: string;
+}
+
+interface PresenceToast {
+  id: string;
+  message: string;
 }
 
 function PanelContent({
@@ -96,8 +102,11 @@ export function MeetOverlay() {
   const [isUIVisible, setIsUIVisible] = useState(true);
   const [isLandscape, setIsLandscape] = useState(false);
   const [chatToasts, setChatToasts] = useState<ChatToast[]>([]);
+  const [presenceToasts, setPresenceToasts] = useState<PresenceToast[]>([]);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevMsgCountRef = useRef(0);
+  const prevParticipantIdsRef = useRef<Set<string>>(new Set());
+  const isFirstMountRef = useRef(true);
 
   const isFullscreen = layoutMode === "fullscreen";
   const shouldAutoHide = isFullscreen || isLandscape;
@@ -133,6 +142,7 @@ export function MeetOverlay() {
 
   function handleVideoTap() {
     if (!shouldAutoHide) return;
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     setIsUIVisible((v) => {
       const next = !v;
       if (next) scheduleHide();
@@ -157,9 +167,42 @@ export function MeetOverlay() {
       setChatToasts((prev) => [...prev, toast]);
       setTimeout(() => {
         setChatToasts((prev) => prev.filter((t) => t.id !== toast.id));
-      }, TOAST_DURATION_MS);
+      }, CHAT_TOAST_DURATION_MS);
     });
   }, [meetChatMessages]);
+
+  // Join/leave presence toasts
+  useEffect(() => {
+    if (!activeMeet) return;
+    const currentIds = new Set(activeMeet.participants.map((p) => p.userId));
+    const prevIds = prevParticipantIdsRef.current;
+
+    if (!isFirstMountRef.current && prevIds.size > 0) {
+      for (const id of currentIds) {
+        if (!prevIds.has(id) && id !== CURRENT_USER_ID) {
+          const user = getUserById(id);
+          if (user) {
+            const toastId = `join-${Date.now()}-${id}`;
+            setPresenceToasts((p) => [...p, { id: toastId, message: `${user.name} joined` }]);
+            setTimeout(() => setPresenceToasts((p) => p.filter((t) => t.id !== toastId)), PRESENCE_TOAST_DURATION_MS);
+          }
+        }
+      }
+      for (const id of prevIds) {
+        if (!currentIds.has(id) && id !== CURRENT_USER_ID) {
+          const user = getUserById(id);
+          if (user) {
+            const toastId = `leave-${Date.now()}-${id}`;
+            setPresenceToasts((p) => [...p, { id: toastId, message: `${user.name} left` }]);
+            setTimeout(() => setPresenceToasts((p) => p.filter((t) => t.id !== toastId)), PRESENCE_TOAST_DURATION_MS);
+          }
+        }
+      }
+    }
+
+    isFirstMountRef.current = false;
+    prevParticipantIdsRef.current = currentIds;
+  }, [activeMeet?.participants]);
 
   // ── Shared render helpers ─────────────────────────────────────────────────
 
@@ -198,12 +241,21 @@ export function MeetOverlay() {
   }
 
   function toastLayer() {
-    if (chatToasts.length === 0) return null;
+    if (chatToasts.length === 0 && presenceToasts.length === 0) return null;
     return (
       <div
         className="pointer-events-none absolute bottom-24 left-3 z-10 flex flex-col gap-2"
         aria-live="polite"
       >
+        {presenceToasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="flex max-w-xs animate-(--animate-slide-up) items-center gap-2 rounded-full bg-black/70 px-4 py-2 shadow-lg backdrop-blur-sm"
+          >
+            <span className="size-1.5 rounded-full bg-emerald-400" />
+            <p className="text-sm font-medium text-white">{toast.message}</p>
+          </div>
+        ))}
         {chatToasts.map((toast) => (
           <div
             key={toast.id}
@@ -276,17 +328,23 @@ export function MeetOverlay() {
 
         <div
           className={cn(
-            "absolute inset-0 flex flex-col transition-opacity duration-300",
+            "absolute inset-0 flex flex-col transition-opacity duration-150",
             isUIVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
           )}
         >
-          <div className="bg-gradient-to-b from-black/50 to-transparent">
-            <MeetHeader meet={activeMeet} />
+          <div
+            className="bg-gradient-to-b from-black/50 to-transparent"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MeetHeader meet={activeMeet} dark />
           </div>
 
           <div className="flex-1" onClick={handleVideoTap} />
 
-          <div className="bg-gradient-to-t from-black/60 to-transparent pb-safe pt-4">
+          <div
+            className="bg-gradient-to-t from-black/60 to-transparent pb-safe pt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-center gap-2 pb-2 pt-1">
               {DEV_REACTION_EMOJIS.map((emoji) => (
                 <button
@@ -334,20 +392,26 @@ export function MeetOverlay() {
           {reactionLayer(true)}
           {toastLayer()}
 
-          {/* Auto-hide UI overlaid on video only */}
+          {/* Auto-hide UI overlaid on video */}
           <div
             className={cn(
-              "absolute inset-0 flex flex-col transition-opacity duration-300",
+              "absolute inset-0 flex flex-col transition-opacity duration-150",
               isUIVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             )}
           >
-            <div className="bg-gradient-to-b from-black/50 to-transparent">
-              <MeetHeader meet={activeMeet} />
+            <div
+              className="bg-gradient-to-b from-black/50 to-transparent"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MeetHeader meet={activeMeet} dark />
             </div>
 
             <div className="flex-1" onClick={handleVideoTap} />
 
-            <div className="bg-gradient-to-t from-black/60 to-transparent pb-safe pt-4">
+            <div
+              className="bg-gradient-to-t from-black/60 to-transparent pb-safe pt-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-center gap-2 pb-2 pt-1">
                 {DEV_REACTION_EMOJIS.map((emoji) => (
                   <button
@@ -373,12 +437,9 @@ export function MeetOverlay() {
           </div>
         </div>
 
-        {/* Inline side panel — never a Sheet in landscape (avoids backdrop-blur bug) */}
+        {/* Side panel — always visible when open, independent of auto-hide */}
         {isRightPanelOpen && (
-          <div className={cn(
-            "flex w-64 shrink-0 flex-col border-l border-white/10 bg-background/95 backdrop-blur-md transition-opacity duration-300",
-            isUIVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}>
+          <div className="flex w-64 shrink-0 flex-col border-l border-white/10 bg-background/95 backdrop-blur-md">
             <PanelContent
               rightPanelTab={rightPanelTab}
               openRightPanel={openRightPanel}
@@ -393,8 +454,11 @@ export function MeetOverlay() {
 
   // ── Portrait / normal layout ──────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
-      <MeetHeader meet={activeMeet} />
+    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900">
+      {/* Header — hidden on mobile when panel is open so video shows behind panel */}
+      <div className={cn(isRightPanelOpen && "hidden md:block")}>
+        <MeetHeader meet={activeMeet} dark />
+      </div>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="min-w-0 flex-1">
@@ -412,7 +476,7 @@ export function MeetOverlay() {
 
         {/* Desktop inline side panel */}
         {isRightPanelOpen && (
-          <div className="hidden w-80 shrink-0 flex-col border-l border-border bg-surface shadow-(--shadow-md) md:flex">
+          <div className="hidden w-80 shrink-0 flex-col border-l border-white/10 bg-background/95 backdrop-blur-md md:flex">
             <PanelContent
               rightPanelTab={rightPanelTab}
               openRightPanel={openRightPanel}
@@ -423,20 +487,35 @@ export function MeetOverlay() {
         )}
       </div>
 
-      {reactionLayer(false)}
+      {reactionLayer(true)}
       {toastLayer()}
 
-      {reactionStrip(false)}
+      {reactionStrip(true)}
 
-      {/* Mobile: full-screen panel replaces video content when open (portrait only) */}
+      {/* Mobile: bottom-sheet overlay so video is visible behind */}
       {isRightPanelOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background md:hidden">
-          <PanelContent
-            rightPanelTab={rightPanelTab}
-            openRightPanel={openRightPanel}
-            closeRightPanel={closeRightPanel}
-            participants={activeMeet.participants}
-          />
+        <div className="fixed inset-0 z-[60] md:hidden" onClick={closeRightPanel}>
+          {/* Dim overlay — video visible through semi-transparent bg */}
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[3px]" aria-hidden />
+          {/* Panel slides up from bottom */}
+          <div
+            className="absolute inset-x-0 bottom-0 flex animate-(--animate-sheet-up) flex-col rounded-t-3xl bg-background shadow-2xl"
+            style={{ maxHeight: "78vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center py-2.5">
+              <div className="h-1 w-10 rounded-full bg-border" />
+            </div>
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <PanelContent
+                rightPanelTab={rightPanelTab}
+                openRightPanel={openRightPanel}
+                closeRightPanel={closeRightPanel}
+                participants={activeMeet.participants}
+              />
+            </div>
+          </div>
         </div>
       )}
 
