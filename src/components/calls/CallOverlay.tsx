@@ -20,15 +20,6 @@ interface CallOverlayProps {
   conversationId: string;
 }
 
-function getGridLayout(count: number, small: boolean): { cols: number; rows: number } {
-  const maxCols = small ? 2 : 3;
-  if (count <= 1) return { cols: 1, rows: 1 };
-  if (count <= 4) return { cols: 2, rows: 2 };
-  if (count <= 6) return { cols: maxCols, rows: small ? 3 : 2 };
-  if (count <= 9) return { cols: maxCols, rows: small ? 5 : 3 };
-  return { cols: small ? 2 : 4, rows: Math.ceil(count / (small ? 2 : 4)) };
-}
-
 function useIsSmallScreen() {
   const [small, setSmall] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 640 : true
@@ -120,7 +111,7 @@ function TileWithMenu({
   );
 }
 
-// Fluid grid: tiles fill the full available height + width, no wasted space
+// Scrollable grid: tiles are always the same comfortable size, scroll to see more
 function FluidGrid({
   participants,
   pinnedUserId,
@@ -131,19 +122,23 @@ function FluidGrid({
   onPin: (id: string | undefined) => void;
 }) {
   const isSmall = useIsSmallScreen();
+  const cols = isSmall ? 2 : 3;
   const count = participants.length;
-  const { cols, rows } = getGridLayout(count, isSmall);
-  const scrollable = count > 9;
+
+  // For ≤4 participants fill the available height (no scroll needed).
+  // For 5+ participants each row is a fixed height so tiles never shrink — the
+  // grid scrolls vertically instead.
+  const rowHeight = count <= 4 ? "1fr" : "calc(50vh - 70px)";
+  const scrollable = count > 4;
 
   return (
     <div
-      className={cn("min-h-0 flex-1", scrollable && "overflow-y-auto")}
+      className={cn("min-h-0 flex-1 p-[3px]", scrollable && "overflow-y-auto")}
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: scrollable ? `repeat(${rows}, 180px)` : `repeat(${rows}, 1fr)`,
+        gridAutoRows: rowHeight,
         gap: "3px",
-        padding: "3px",
       }}
     >
       {participants.map((p) => (
