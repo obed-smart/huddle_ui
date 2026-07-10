@@ -439,6 +439,22 @@ export const seedMessages: Record<string, Message[]> = {
       createdAt: minutesAgo(5),
       status: "delivered",
     },
+    {
+      id: "m-marcus-invite-1",
+      conversationId: "c-marcus",
+      senderId: "u-marcus",
+      text: "Hey, also — me, Jakob and Hanna spun up a private group for the side project. Want in?",
+      createdAt: minutesAgo(2),
+      status: "delivered",
+    },
+    {
+      id: "m-marcus-invite-2",
+      conversationId: "c-marcus",
+      senderId: "u-marcus",
+      text: "Here's the invite link 🔒\n/join/LOCKD1T",
+      createdAt: minutesAgo(1),
+      status: "delivered",
+    },
   ],
   "c-engineering": [
     {

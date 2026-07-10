@@ -1,8 +1,41 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AttachmentCard } from "./AttachmentCard";
+import { GroupInviteCard } from "./GroupInviteCard";
 import { ReadReceipt } from "./ReadReceipt";
 import { ReplyQuote } from "./ReplyQuote";
 import type { Message } from "@/types";
+
+// Regex to match /join/CODE anywhere in text
+const JOIN_LINK_RE = /\/join\/([A-Za-z0-9]+)/g;
+
+function extractInviteCode(text: string): string | null {
+  const match = JOIN_LINK_RE.exec(text);
+  JOIN_LINK_RE.lastIndex = 0; // reset stateful regex
+  return match ? match[1] : null;
+}
+
+// Split text into plain segments and /join/CODE links, returning mixed nodes
+function TextWithLinks({ text, isOwn }: { text: string; isOwn: boolean }) {
+  const parts = text.split(/(\/join\/[A-Za-z0-9]+)/g);
+  const linkClass = isOwn
+    ? "font-medium underline text-white/90 hover:text-white"
+    : "font-medium underline text-primary hover:text-primary/80";
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        /^\/join\/[A-Za-z0-9]+$/.test(part) ? (
+          <Link key={i} href={part} className={linkClass}>
+            {part}
+          </Link>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
 
 interface BubbleContentProps {
   message: Message;
@@ -49,7 +82,7 @@ export function BubbleContent({ message, isOwn, senderName, timestamp }: BubbleC
         // Text (with or without attachment): time floats inline at bottom-right
         <div className="relative">
           <p className="whitespace-pre-wrap break-words text-sm leading-snug">
-            {message.text}
+            <TextWithLinks text={message.text!} isOwn={isOwn} />
             {/*
               Invisible duplicate of the time label — keeps the last text line
               from overlapping the absolutely-positioned visible timestamp.
@@ -59,6 +92,10 @@ export function BubbleContent({ message, isOwn, senderName, timestamp }: BubbleC
             </span>
           </p>
           <span className="pointer-events-none absolute bottom-0 right-0">{timeRow}</span>
+          {/* Group invite card — rendered when message contains a /join/CODE link */}
+          {extractInviteCode(message.text!) && (
+            <GroupInviteCard inviteCode={extractInviteCode(message.text!)!} isOwn={isOwn} />
+          )}
         </div>
       ) : hasAttachments ? (
         // Attachment-only (image, voice, file): time below in a right-aligned row
