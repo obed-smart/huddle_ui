@@ -181,6 +181,15 @@ export const seedConversations: Conversation[] = [
     type: "dm",
     participantIds: ["u-emerson", "u-lena"],
   },
+  {
+    id: "c-locktest",
+    type: "group",
+    name: "Lock Group Test",
+    description: "A private community. Membership is by request only.",
+    participantIds: ["u-jakob", "u-hanna", "u-marcus"],
+    isPrivate: true,
+    inviteCode: "LOCKD1T",
+  },
 ];
 
 export const seedMessages: Record<string, Message[]> = {

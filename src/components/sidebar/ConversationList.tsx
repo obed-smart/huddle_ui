@@ -5,6 +5,7 @@ import { ConversationCard } from "./ConversationCard";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Search } from "@/components/ui/icons";
 import { useChatStore } from "@/store/useChatStore";
+import { CURRENT_USER_ID } from "@/lib/seed-data";
 import { getConversationName } from "@/lib/conversation-utils";
 
 export type ChatFilter = "all" | "unread" | "groups";
@@ -20,6 +21,7 @@ export function ConversationList({ query, filter = "all" }: ConversationListProp
 
   const filtered = conversations
     .filter((c) => {
+      if (!c.participantIds.includes(CURRENT_USER_ID)) return false;
       if (!getConversationName(c).toLowerCase().includes(query.trim().toLowerCase())) return false;
       if (filter === "groups") return c.type === "group";
       if (filter === "unread") return getUnreadCount(c.id) > 0;
