@@ -17,6 +17,7 @@ interface ChatState {
   setReplyingTo: (info: { conversationId: string; message: Message } | null) => void;
   setEditingMessage: (info: { conversationId: string; message: Message } | null) => void;
   sendMessage: (conversationId: string, text: string) => void;
+  confirmMessage: (conversationId: string, tempId: string, serverMessage: Message) => void;
   editMessage: (conversationId: string, messageId: string, text: string) => void;
   sendAttachment: (conversationId: string, file: File) => void;
   togglePin: (conversationId: string) => void;
@@ -64,13 +65,17 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     const replyRef = state.replyingTo?.conversationId === conversationId
       ? ({ messageId: state.replyingTo.message.id, senderId: state.replyingTo.message.senderId, text: state.replyingTo.message.text } satisfies MessageReplyRef)
       : undefined;
-    const message: Message = {
-      id: `m-${Date.now()}`,
+
+    // Client-generated temp ID — replaced by the real server ID once the socket ack arrives.
+    // The "tmp_" prefix lets the socket handler identify which bubble to reconcile.
+    const tempId = `tmp_${crypto.randomUUID()}`;
+    const optimisticMessage: Message = {
+      id: tempId,
       conversationId,
       senderId: CURRENT_USER_ID,
       text: text.trim(),
       createdAt: new Date().toISOString(),
-      status: "sent",
+      status: "sending", // clock icon until server confirms
       replyTo: replyRef,
     };
 
@@ -80,21 +85,35 @@ export const useChatStore = create<ChatState>()((set, get) => ({
         ...state.messagesByConversation,
         [conversationId]: [
           ...(state.messagesByConversation[conversationId] ?? []),
-          message,
+          optimisticMessage,
         ],
       },
     }));
 
+    // Simulates the server ack + real message row coming back over the socket.
+    // When the real socket is wired up, delete this timeout and call
+    // confirmMessage from the socket's message.ack / message.created handler instead:
+    //   socket.emit("message:send", payload, (serverMessage) => {
+    //     get().confirmMessage(conversationId, tempId, serverMessage);
+    //   });
     setTimeout(() => {
-      set((state) => ({
-        messagesByConversation: {
-          ...state.messagesByConversation,
-          [conversationId]: (
-            state.messagesByConversation[conversationId] ?? []
-          ).map((m) => (m.id === message.id ? { ...m, status: "delivered" } : m)),
-        },
-      }));
+      get().confirmMessage(conversationId, tempId, {
+        ...optimisticMessage,
+        id: `m-${Date.now()}`,   // real server ID would arrive here
+        status: "delivered",
+      });
     }, 900);
+  },
+
+  confirmMessage: (conversationId, tempId, serverMessage) => {
+    set((state) => ({
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: (state.messagesByConversation[conversationId] ?? []).map(
+          (m) => (m.id === tempId ? serverMessage : m)
+        ),
+      },
+    }));
   },
 
   sendAttachment: (conversationId, file) => {
