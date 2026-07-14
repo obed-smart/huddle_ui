@@ -79,9 +79,13 @@ function NotificationPreview({ notification, onBack, onOpen }: NotificationPrevi
 
 export function NotificationDropdown() {
   const router = useRouter();
-  const { notifications, markRead, markAllRead } = useNotificationsStore();
+  const { notifications: allNotifications, markRead, markAllRead } = useNotificationsStore();
   const { activeModal, openModal, closeModal } = useUIStore();
   const [preview, setPreview] = useState<NotificationItemType | null>(null);
+  // Only surface types that have no other dedicated home in the UI
+  const notifications = allNotifications.filter(
+    (n) => n.type === "mention" || n.type === "system"
+  );
   const unreadCount = notifications.filter((n) => !n.read).length;
   const open = activeModal === "notifications";
 
