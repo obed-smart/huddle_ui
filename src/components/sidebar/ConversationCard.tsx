@@ -59,10 +59,10 @@ export function ConversationCard({ conversation, isActive, onClick }: Conversati
             </span>
           )}
         </span>
-        <span className="flex items-center justify-between gap-2">
+        <span className="mt-0.5 flex items-center gap-2">
           <span
             className={cn(
-              "truncate text-sm",
+              "min-w-0 flex-1 truncate text-sm",
               isTyping
                 ? "font-medium text-primary"
                 : unreadCount > 0
