@@ -10,10 +10,7 @@ const MIN_DELAY_MS = 25_000;
 const MAX_DELAY_MS = 55_000;
 
 const TEMPLATES: { type: NotificationType; body: (name: string) => string }[] = [
-  { type: "message", body: () => "sent you a new message" },
-  { type: "message", body: () => "Hey, are you around?" },
   { type: "mention", body: (name) => `mentioned you: "@${name.split(" ")[0]} take a look at this"` },
-  { type: "call", body: () => "Missed call · just now" },
 ];
 
 function getConversationId(userId: string): string | undefined {
@@ -32,7 +29,7 @@ function randomNotification() {
   const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
   return {
     type: template.type,
-    title: template.type === "call" ? `Missed call from ${user.name}` : user.name,
+    title: user.name,
     body: template.body(user.name),
     userId: user.id,
     conversationId: getConversationId(user.id),

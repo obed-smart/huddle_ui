@@ -334,6 +334,14 @@ export const seedMessages: Record<string, Message[]> = {
       createdAt: minutesAgo(14),
       status: "delivered",
     },
+    {
+      id: "m-jd-6",
+      conversationId: "c-jaydon",
+      senderId: "u-jaydon",
+      call: { type: "audio", direction: "incoming", outcome: "missed" },
+      createdAt: minutesAgo(1),
+      status: "delivered",
+    },
   ],
   "c-design": [
     {
@@ -636,26 +644,6 @@ export const seedMessages: Record<string, Message[]> = {
 
 export const seedNotifications: NotificationItem[] = [
   {
-    id: "n-1",
-    type: "message",
-    title: "Katie Mizu",
-    body: "Did you know who is this guy?",
-    createdAt: minutesAgo(2),
-    read: false,
-    conversationId: "c-katie",
-    userId: "u-katie",
-  },
-  {
-    id: "n-2",
-    type: "call",
-    title: "Missed call from Jaydon George",
-    body: "Audio call · 1 min ago",
-    createdAt: minutesAgo(1),
-    read: false,
-    conversationId: "c-jaydon",
-    userId: "u-jaydon",
-  },
-  {
     id: "n-3",
     type: "mention",
     title: "Hanna Lubin mentioned you",
@@ -664,16 +652,6 @@ export const seedNotifications: NotificationItem[] = [
     read: false,
     conversationId: "c-design",
     userId: "u-hanna",
-  },
-  {
-    id: "n-4",
-    type: "message",
-    title: "Marcus Obi",
-    body: "Got it — probably the exponential backoff timer. I'll dig in.",
-    createdAt: minutesAgo(5),
-    read: false,
-    conversationId: "c-marcus",
-    userId: "u-marcus",
   },
   {
     id: "n-5",
